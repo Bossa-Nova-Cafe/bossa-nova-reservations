@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bossa Nova Café — Music Night &amp; Match Night</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--vert:#123F2B;--vert-2:#0B2A1D;--or:#E9B93A;--violet:#5B2C83;--creme:#FBF6EA;--encre:#1B1B1B;--gris:#8A8579;--rouge:#B23A2A;--r:14px}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--creme);color:var(--encre);font-family:Poppins,system-ui,sans-serif;font-weight:300;line-height:1.5}
+  h1,h2,h3{font-family:Anton,Impact,sans-serif;font-weight:400;letter-spacing:.02em;text-transform:uppercase;margin:0}
+  header{background:var(--vert);color:var(--creme);padding:28px 20px 22px}
+  header .inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  header h1{font-size:clamp(28px,5vw,44px);line-height:1}
+  header h1 span{color:var(--or)}
+  header p{margin:6px 0 0;opacity:.8;font-size:14px}
+  .tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  nav button{background:transparent;border:1.5px solid rgba(251,246,234,.4);color:var(--creme);padding:8px 16px;border-radius:999px;font:500 13px Poppins;cursor:pointer;margin-left:6px}
+  nav button.on{background:var(--or);border-color:var(--or);color:var(--vert-2)}
+  #lang{background:rgba(0,0,0,.2);border:1.5px solid rgba(251,246,234,.4);color:var(--creme);border-radius:999px;padding:8px 10px;font:500 13px Poppins;cursor:pointer}
+  #lang option{color:var(--encre)}
+  main{max-width:900px;margin:0 auto;padding:24px 20px 60px}
+  .card{background:#fff;border-radius:var(--r);padding:22px;box-shadow:0 2px 14px rgba(18,63,43,.08);margin-bottom:18px}
+  .card h2{font-size:22px;color:var(--vert)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:14px}
+  .evt{border:1.5px solid #e6e1d4;border-radius:var(--r);padding:16px;cursor:pointer;transition:.15s;position:relative}
+  .evt:hover,.evt.sel{border-color:var(--vert);background:#F3F7F4}
+  .evt .date{font-family:Anton;font-size:30px;line-height:1;color:var(--vert)}
+  .evt .mois{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--gris)}
+  .evt h3{font-size:17px;margin:8px 0 4px;letter-spacing:.03em}
+  .evt .meta{font-size:13px;color:var(--gris)}
+  .type{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-bottom:8px}
+  .type.music{background:#F3EEF9;color:var(--violet)}
+  .type.match{background:#FDF3D6;color:#8A6100}
+  .jauge{height:6px;background:#eee8d9;border-radius:3px;margin-top:10px;overflow:hidden}
+  .jauge i{display:block;height:100%;background:var(--or)}
+  .jauge i.full{background:var(--rouge)}
+  .badge{position:absolute;top:12px;right:12px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--rouge);color:#fff;text-transform:uppercase;letter-spacing:.08em}
+  .badge.ferme{background:var(--gris)}
+  label{display:block;font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--gris);margin:12px 0 5px}
+  input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid #e6e1d4;border-radius:10px;font:400 15px Poppins;background:#fff;color:var(--encre)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--or);border-color:var(--or)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .tel{display:flex;gap:8px}
+  .tel select{width:auto;flex:0 0 130px;padding-right:4px}
+  .btn{background:var(--vert);color:var(--creme);border:0;padding:13px 22px;border-radius:999px;font:600 14px Poppins;cursor:pointer;margin-top:18px}
+  .btn:hover{background:var(--vert-2)}
+  .btn.or{background:var(--or);color:var(--vert-2)}
+  .btn.ghost{background:transparent;color:var(--vert);border:1.5px solid var(--vert)}
+  .btn.sm{padding:7px 14px;font-size:12px;margin-top:0}
+  .btn.danger{background:transparent;color:var(--rouge);border:1.5px solid var(--rouge)}
+  .btn.wa{background:#25D366;color:var(--vert-2);border:0}
+  .btn.wa:hover{background:#1EBE5B}
+  .btn.wa[disabled]{background:#e6e1d4;color:var(--gris);cursor:not-allowed}
+  .slots{display:flex;gap:8px;flex-wrap:wrap}
+  .slot{padding:9px 16px;border:1.5px solid #e6e1d4;border-radius:999px;cursor:pointer;font-weight:500;font-size:14px;background:#fff}
+  .slot.sel{background:var(--violet);color:#fff;border-color:var(--violet)}
+  .note{font-size:13px;color:var(--gris);margin-top:6px}
+  .ok{background:#EAF3EC;border-left:4px solid var(--vert);padding:16px;border-radius:10px}
+  .err{color:var(--rouge);font-size:13px;margin-top:8px;font-weight:500}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--gris);padding:8px 6px;border-bottom:1.5px solid #e6e1d4}
+  td{padding:9px 6px;border-bottom:1px solid #f0ece1;vertical-align:top}
+  .stat{display:flex;gap:22px;flex-wrap:wrap;margin:10px 0}
+  .stat b{display:block;font-family:Anton;font-size:30px;color:var(--vert);line-height:1}
+  .stat span{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--gris)}
+  .empty{text-align:center;color:var(--gris);padding:30px}
+  .chip{display:inline-block;background:#F3EEF9;color:var(--violet);padding:2px 8px;border-radius:6px;font-size:12px;font-weight:500;margin:2px 2px 0 0}
+  .flag{display:inline-block;background:#f0ece1;color:var(--gris);font-size:11px;font-weight:600;padding:1px 6px;border-radius:5px;margin-left:6px}
+  .hidden{display:none}
+  .modal{position:fixed;inset:0;background:rgba(11,42,29,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:99}
+  .modal.hidden{display:none}
+  .modal .box{background:#fff;border-radius:var(--r);padding:24px;max-width:440px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+  .modal p{margin:0 0 18px;font-size:16px}
+  .modal .acts{display:flex;gap:10px;justify-content:flex-end}
+  .modal .btn{margin-top:0}
+  .modal textarea{font:400 12px/1.4 ui-monospace,monospace;margin-bottom:14px}
+  @media(max-width:600px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="inner">
+  <div><h1>Bossa Nova <span>Café</span></h1><p>Music Night &amp; Match Night · Place de la Gare 3, 1800 Vevey</p></div>
+  <div class="tools">
+    <select id="lang" onchange="setLang(this.value)" aria-label="Language"></select>
+    <nav><button id="tabPub" class="on" onclick="go('pub')"></button><button id="tabAdm" onclick="go('adm')"></button></nav>
+  </div>
+</div></header>
+
+<main>
+<section id="pub">
+  <div class="card">
+    <h2 id="t_choisir"></h2>
+    <p class="note" id="t_intro"></p>
+    <div id="pubList" class="grid"></div>
+  </div>
+  <div id="formCard" class="card hidden">
+    <h2 id="formTitle"></h2>
+    <p class="note" id="formMeta"></p>
+    <label id="t_heure"></label>
+    <div class="slots" id="slotPick"></div>
+    <div class="row">
+      <div><label id="t_nom"></label><input id="fNom"></div>
+      <div><label id="t_pax"></label><select id="fPax"></select></div>
+    </div>
+    <div class="row">
+      <div><label id="t_tel"></label><div class="tel"><select id="fInd"></select><input id="fTel" type="tel" inputmode="tel"></div></div>
+      <div><label id="t_mail"></label><input id="fMail" type="email" placeholder="…@…"></div>
+    </div>
+    <label id="t_note"></label><textarea id="fNote" rows="2"></textarea>
+    <div class="err" id="fErr"></div>
+    <button class="btn or" id="t_valider" onclick="reserver()"></button>
+  </div>
+  <div id="okCard" class="card hidden"><div class="ok" id="okMsg"></div><button class="btn ghost" id="t_nouvelle" onclick="go('pub')"></button></div>
+</section>
+
+<section id="adm" class="hidden">
+  <div class="card" id="loginCard">
+    <h2>Espace gestion</h2>
+    <p class="note">Réservé à l'équipe du Bossa Nova Café.</p>
+    <div class="row">
+      <div><label>E-mail</label><input id="lMail" type="email" autocomplete="username"></div>
+      <div><label>Mot de passe</label><input id="lPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"></div>
+    </div>
+    <div class="err" id="lErr"></div>
+    <button class="btn" onclick="login()">Se connecter</button>
+  </div>
+  <div id="admContent" class="hidden">
+  <div style="text-align:right;margin-bottom:10px"><span class="note" id="whoami"></span>
+    <button class="btn sm ghost" onclick="auth.signOut()">Déconnexion</button></div>
+  <div class="card">
+    <h2>Nouvelle soirée</h2>
+    <div class="row">
+      <div><label>Type de soirée</label><select id="aType" onchange="preremplir()"><option value="music">Music Night</option><option value="match">Match Night</option></select></div>
+      <div><label>Titre</label><input id="aTitre" placeholder="Ex. Samba de roda avec …"></div>
+    </div>
+    <div class="row">
+      <div><label>Date</label><input id="aDate" type="date"></div>
+      <div><label>Début</label><input id="aDebut" type="time" value="20:00"></div>
+    </div>
+    <div class="row">
+      <div><label>Fin</label><input id="aFin" type="time" value="23:00"></div>
+      <div><label>Dernier jour pour réserver</label><input id="aLimit" type="date"></div>
+    </div>
+    <div class="row">
+      <div><label>Capacité totale</label><input id="aCap" type="number" value="40" min="2"></div>
+      <div><label>Minimum par réservation</label><input id="aMin" type="number" value="2" min="1"></div>
+    </div>
+    <label>Heures d'arrivée proposées</label>
+    <input id="aSlots" value="19:30, 20:00, 20:30">
+    <p class="note">Séparez les heures par des virgules. Ce sont les créneaux proposés aux clients.</p>
+    <div class="err" id="aErr"></div>
+    <button class="btn" onclick="creerSoiree()">Créer la soirée</button>
+  </div>
+  <div class="card">
+    <h2>Soirées programmées</h2>
+    <div id="admList"></div>
+  </div>
+  </div>
+</section>
+</main>
+
+<div id="modal" class="modal hidden"><div class="box"><p id="modalMsg"></p><div id="modalExtra"></div><div class="acts" id="modalActs"></div></div></div>
+
+<script>
+// ⇩ COLLER ICI la configuration copiée depuis la console Firebase
+//    (Paramètres du projet → Vos applications → icône Web)
+const firebaseConfig = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore(), auth=firebase.auth();
+const EV=db.collection('soirees'), RS=db.collection('reservations');
+let events=[], resas=[], selEv=null, selSlot=null, lang='fr', isAdmin=false;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ================= langues ================= */
+const LANGS={fr:'Français',en:'English',de:'Deutsch',pt:'Português',es:'Español',it:'Italiano'};
+const LOC={fr:'fr-CH',en:'en-GB',de:'de-CH',pt:'pt-BR',es:'es-ES',it:'it-CH'};
+const T={
+ fr:{tabPub:'Réserver',tabAdm:'Gestion',choisir:'Choisissez votre soirée',intro:'Chaque table accueille 2 personnes au minimum. Places limitées.',vide:'Aucune soirée programmée pour le moment.',heure:"Heure d'arrivée",nom:'Nom',nomPh:'Nom et prénom',pax:'Nombre de personnes',pers:n=>n+(n>1?' personnes':' personne'),table:'(1 table)',tel:'Téléphone (WhatsApp)',mail:'E-mail',note:'Remarque (optionnel)',notePh:'Allergies, anniversaire, préférence de table…',valider:'Confirmer la réservation',nouvelle:'Nouvelle réservation',restantes:n=>n+' places restantes',complet:'complet',Complet:'Complet',Ferme:'Fermé',eSlot:"Choisissez une heure d'arrivée.",eNom:'Le nom est requis.',eContact:'Indiquez un téléphone ou un e-mail.',eMin:n=>'Minimum '+n+' personnes par réservation.',ePlaces:n=>'Il ne reste que '+n+' place(s) pour cette soirée.',okTitre:c=>'Réservation confirmée — code '+c,arrivee:'arrivée à',attendons:'Nous vous attendons au Bossa Nova Café, Place de la Gare 3, 1800 Vevey.'},
+ en:{tabPub:'Book',tabAdm:'Manage',choisir:'Choose your evening',intro:'Each table seats 2 people minimum. Limited seats.',vide:'No evening scheduled at the moment.',heure:'Arrival time',nom:'Name',nomPh:'First and last name',pax:'Number of guests',pers:n=>n+(n>1?' guests':' guest'),table:'(1 table)',tel:'Phone (WhatsApp)',mail:'Email',note:'Note (optional)',notePh:'Allergies, birthday, table preference…',valider:'Confirm booking',nouvelle:'New booking',restantes:n=>n+' seats left',complet:'full',Complet:'Full',Ferme:'Closed',eSlot:'Please choose an arrival time.',eNom:'Name is required.',eContact:'Please give a phone number or an email.',eMin:n=>'Minimum '+n+' guests per booking.',ePlaces:n=>'Only '+n+' seat(s) left for this evening.',okTitre:c=>'Booking confirmed — code '+c,arrivee:'arriving at',attendons:'We look forward to seeing you at Bossa Nova Café, Place de la Gare 3, 1800 Vevey.'},
+ de:{tabPub:'Reservieren',tabAdm:'Verwaltung',choisir:'Wählen Sie Ihren Abend',intro:'Pro Tisch mindestens 2 Personen. Begrenzte Plätze.',vide:'Zurzeit ist kein Abend geplant.',heure:'Ankunftszeit',nom:'Name',nomPh:'Vor- und Nachname',pax:'Anzahl Personen',pers:n=>n+(n>1?' Personen':' Person'),table:'(1 Tisch)',tel:'Telefon (WhatsApp)',mail:'E-Mail',note:'Bemerkung (optional)',notePh:'Allergien, Geburtstag, Tischwunsch…',valider:'Reservierung bestätigen',nouvelle:'Neue Reservierung',restantes:n=>'noch '+n+' Plätze',complet:'ausgebucht',Complet:'Ausgebucht',Ferme:'Geschlossen',eSlot:'Bitte wählen Sie eine Ankunftszeit.',eNom:'Name ist erforderlich.',eContact:'Bitte Telefon oder E-Mail angeben.',eMin:n=>'Mindestens '+n+' Personen pro Reservierung.',ePlaces:n=>'Es sind nur noch '+n+' Platz/Plätze frei.',okTitre:c=>'Reservierung bestätigt — Code '+c,arrivee:'Ankunft um',attendons:'Wir freuen uns auf Sie im Bossa Nova Café, Place de la Gare 3, 1800 Vevey.'},
+ pt:{tabPub:'Reservar',tabAdm:'Gestão',choisir:'Escolha a sua noite',intro:'Cada mesa acolhe no mínimo 2 pessoas. Lugares limitados.',vide:'Nenhuma noite programada no momento.',heure:'Hora de chegada',nom:'Nome',nomPh:'Nome e sobrenome',pax:'Número de pessoas',pers:n=>n+(n>1?' pessoas':' pessoa'),table:'(1 mesa)',tel:'Telefone (WhatsApp)',mail:'E-mail',note:'Observação (opcional)',notePh:'Alergias, aniversário, preferência de mesa…',valider:'Confirmar reserva',nouvelle:'Nova reserva',restantes:n=>n+' lugares disponíveis',complet:'lotado',Complet:'Lotado',Ferme:'Fechado',eSlot:'Escolha uma hora de chegada.',eNom:'O nome é obrigatório.',eContact:'Indique um telefone ou um e-mail.',eMin:n=>'Mínimo de '+n+' pessoas por reserva.',ePlaces:n=>'Restam apenas '+n+' lugar(es) para esta noite.',okTitre:c=>'Reserva confirmada — código '+c,arrivee:'chegada às',attendons:'Esperamos por você no Bossa Nova Café, Place de la Gare 3, 1800 Vevey.'},
+ es:{tabPub:'Reservar',tabAdm:'Gestión',choisir:'Elija su velada',intro:'Cada mesa acoge un mínimo de 2 personas. Plazas limitadas.',vide:'Ninguna velada programada por ahora.',heure:'Hora de llegada',nom:'Nombre',nomPh:'Nombre y apellido',pax:'Número de personas',pers:n=>n+(n>1?' personas':' persona'),table:'(1 mesa)',tel:'Teléfono (WhatsApp)',mail:'Correo electrónico',note:'Observación (opcional)',notePh:'Alergias, cumpleaños, preferencia de mesa…',valider:'Confirmar la reserva',nouvelle:'Nueva reserva',restantes:n=>n+' plazas disponibles',complet:'completo',Complet:'Completo',Ferme:'Cerrado',eSlot:'Elija una hora de llegada.',eNom:'El nombre es obligatorio.',eContact:'Indique un teléfono o un correo electrónico.',eMin:n=>'Mínimo '+n+' personas por reserva.',ePlaces:n=>'Solo quedan '+n+' plaza(s) para esta velada.',okTitre:c=>'Reserva confirmada — código '+c,arrivee:'llegada a las',attendons:'Le esperamos en el Bossa Nova Café, Place de la Gare 3, 1800 Vevey.'},
+ it:{tabPub:'Prenotare',tabAdm:'Gestione',choisir:'Scegliete la vostra serata',intro:'Ogni tavolo accoglie almeno 2 persone. Posti limitati.',vide:'Nessuna serata in programma al momento.',heure:'Ora di arrivo',nom:'Nome',nomPh:'Nome e cognome',pax:'Numero di persone',pers:n=>n+(n>1?' persone':' persona'),table:'(1 tavolo)',tel:'Telefono (WhatsApp)',mail:'E-mail',note:'Nota (facoltativo)',notePh:'Allergie, compleanno, preferenza di tavolo…',valider:'Confermare la prenotazione',nouvelle:'Nuova prenotazione',restantes:n=>n+' posti disponibili',complet:'completo',Complet:'Completo',Ferme:'Chiuso',eSlot:"Scegliete un'ora di arrivo.",eNom:'Il nome è obbligatorio.',eContact:"Indicate un telefono o un'e-mail.",eMin:n=>'Minimo '+n+' persone per prenotazione.',ePlaces:n=>'Restano solo '+n+' posto/i per questa serata.',okTitre:c=>'Prenotazione confermata — codice '+c,arrivee:'arrivo alle',attendons:'Vi aspettiamo al Bossa Nova Café, Place de la Gare 3, 1800 Vevey.'}
+};
+const t=k=>T[lang][k];
+
+/* messages WhatsApp, dans la langue choisie par le client */
+const WA={
+ fr:(r,ev)=>`Bonjour ${r.nom},\n\nVotre réservation au Bossa Nova Café est confirmée :\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'fr')}, arrivée à ${r.slot}\n${r.pax} personne${r.pax>1?'s':''} · code ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nÀ très bientôt !`,
+ en:(r,ev)=>`Hello ${r.nom},\n\nYour booking at Bossa Nova Café is confirmed:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'en')}, arriving at ${r.slot}\n${r.pax} guest${r.pax>1?'s':''} · code ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nSee you soon!`,
+ de:(r,ev)=>`Guten Tag ${r.nom},\n\nIhre Reservierung im Bossa Nova Café ist bestätigt:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'de')}, Ankunft um ${r.slot}\n${r.pax} Person${r.pax>1?'en':''} · Code ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nBis bald!`,
+ pt:(r,ev)=>`Olá ${r.nom},\n\nSua reserva no Bossa Nova Café está confirmada:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'pt')}, chegada às ${r.slot}\n${r.pax} pessoa${r.pax>1?'s':''} · código ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nAté breve!`,
+ es:(r,ev)=>`Hola ${r.nom},\n\nSu reserva en el Bossa Nova Café está confirmada:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'es')}, llegada a las ${r.slot}\n${r.pax} persona${r.pax>1?'s':''} · código ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\n¡Hasta pronto!`,
+ it:(r,ev)=>`Buongiorno ${r.nom},\n\nLa vostra prenotazione al Bossa Nova Café è confermata:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'it')}, arrivo alle ${r.slot}\n${r.pax} person${r.pax>1?'e':'a'} · codice ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nA presto!`
+};
+
+/* indicatifs — Suisse et voisins en tête, puis le reste par ordre alphabétique */
+const IND=[['CH','41','Suisse'],['FR','33','France'],['DE','49','Deutschland'],['IT','39','Italia'],['AT','43','Österreich'],
+['BR','55','Brasil'],['PT','351','Portugal'],['ES','34','España'],['GB','44','United Kingdom'],['US','1','USA / Canada'],
+['AR','54','Argentina'],['AU','61','Australia'],['BE','32','Belgique'],['CL','56','Chile'],['CN','86','中国'],['CO','57','Colombia'],
+['CZ','420','Česko'],['DK','45','Danmark'],['FI','358','Suomi'],['GR','30','Ελλάδα'],['HR','385','Hrvatska'],
+['HU','36','Magyarország'],['IE','353','Ireland'],['IL','972','ישראל'],['IN','91','India'],['JP','81','日本'],['KR','82','한국'],
+['LU','352','Luxembourg'],['MA','212','المغرب'],['MX','52','México'],['NL','31','Nederland'],['NO','47','Norge'],['NZ','64','New Zealand'],
+['PE','51','Perú'],['PL','48','Polska'],['RO','40','România'],['RU','7','Россия'],['SE','46','Sverige'],['SK','421','Slovensko'],
+['SI','386','Slovenija'],['TH','66','ไทย'],['TR','90','Türkiye'],['UA','380','Україна'],['UY','598','Uruguay'],['ZA','27','South Africa']];
+const flag=cc=>String.fromCodePoint(...[...cc].map(c=>0x1F1E6+c.charCodeAt(0)-65));
+
+function setLang(l){
+  lang=l; document.documentElement.lang=l;
+  try{ localStorage.setItem('bossa-lang',l); }catch(e){}
+  $('lang').value=l;
+  $('tabPub').textContent=t('tabPub'); $('tabAdm').textContent=t('tabAdm');
+  $('t_choisir').textContent=t('choisir'); $('t_intro').textContent=t('intro');
+  $('t_heure').textContent=t('heure'); $('t_nom').textContent=t('nom'); $('fNom').placeholder=t('nomPh');
+  $('t_pax').textContent=t('pax'); $('t_tel').textContent=t('tel'); $('t_mail').textContent=t('mail');
+  $('t_note').textContent=t('note'); $('fNote').placeholder=t('notePh');
+  $('t_valider').textContent=t('valider'); $('t_nouvelle').textContent=t('nouvelle');
+  render(); if(selEv) choisir(selEv.id);
+}
+
+/* ================= données temps réel ================= */
+EV.orderBy('date').onSnapshot(q=>{events=q.docs.map(d=>({id:d.id,...d.data()}));render();},e=>console.error(e));
+let unsubRs=null;
+auth.onAuthStateChanged(u=>{
+  isAdmin=!!u;
+  $('loginCard').classList.toggle('hidden',isAdmin);
+  $('admContent').classList.toggle('hidden',!isAdmin);
+  if(u){ $('whoami').textContent=u.email;
+         unsubRs=RS.onSnapshot(q=>{resas=q.docs.map(d=>({id:d.id,...d.data()}));render();},e=>console.error(e)); }
+  else { if(unsubRs){unsubRs();unsubRs=null;} resas=[]; render(); }
+});
+async function login(){
+  $('lErr').textContent='';
+  try{ await auth.signInWithEmailAndPassword($('lMail').value.trim(),$('lPass').value); $('lPass').value=''; }
+  catch(e){ $('lErr').textContent="Connexion refusée : vérifiez l'e-mail et le mot de passe."; }
+}
+
+/* ================= dialogues ================= */
+function ask(msg,okLabel='Supprimer'){
+  return new Promise(res=>{
+    $('modalMsg').textContent=msg; $('modalExtra').innerHTML='';
+    $('modalActs').innerHTML='<button class="btn ghost" id="mNo">Annuler</button><button class="btn danger" id="mYes">'+okLabel+'</button>';
+    $('modal').classList.remove('hidden');
+    const done=v=>{$('modal').classList.add('hidden');res(v);};
+    $('mNo').onclick=()=>done(false); $('mYes').onclick=()=>done(true); $('mYes').focus();
+  });
+}
+function info(msg,texte){
+  $('modalMsg').textContent=msg;
+  $('modalExtra').innerHTML=texte?'<textarea rows="8" readonly onclick="this.select()">'+esc(texte)+'</textarea>':'';
+  $('modalActs').innerHTML='<button class="btn" id="mOk">Fermer</button>';
+  $('modal').classList.remove('hidden');
+  $('mOk').onclick=()=>$('modal').classList.add('hidden'); $('mOk').focus();
+  if(texte) $('modalExtra').querySelector('textarea').select();
+}
+
+/* ================= utilitaires ================= */
+const TYPES={music:{nom:'Music Night',titre:'Ex. Samba de roda avec …',debut:'20:00',fin:'23:00',slots:'19:30, 20:00, 20:30'},
+             match:{nom:'Match Night',titre:'Ex. Brésil – Argentine',debut:'20:00',fin:'23:00',slots:'19:00, 19:30, 20:00'}};
+const today=()=>new Date().toLocaleDateString('sv-SE');
+function dfull(d,l){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[l||lang],{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(x);}
+function dmois(d){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[lang],{month:'short'}).format(x)+' '+x.getFullYear();}
+function pax(ev){return ev.pax||0;}
+function reste(ev){return ev.cap-pax(ev);}
+function ouverte(ev){return !ev.ferme && ev.date>=today() && (!ev.limit||ev.limit>=today()) && reste(ev)>=ev.min;}
+
+function go(v){
+  $('pub').classList.toggle('hidden',v!=='pub'); $('adm').classList.toggle('hidden',v!=='adm');
+  $('tabPub').classList.toggle('on',v==='pub'); $('tabAdm').classList.toggle('on',v==='adm');
+  $('formCard').classList.add('hidden'); $('okCard').classList.add('hidden'); selEv=null;
+  render();
+}
+
+/* ================= public ================= */
+function render(){
+  const upcoming=events.filter(e=>e.date>=today()).sort((a,b)=>a.date.localeCompare(b.date));
+  $('pubList').innerHTML=upcoming.length?upcoming.map(ev=>{
+    const x=new Date(ev.date+'T12:00'), r=reste(ev), full=r<ev.min, pct=Math.min(100,pax(ev)/ev.cap*100);
+    const badge=ev.ferme?`<span class="badge ferme">${t('Ferme')}</span>`:full?`<span class="badge">${t('Complet')}</span>`:'';
+    return `<div class="evt ${selEv&&selEv.id===ev.id?'sel':''}" onclick="choisir('${ev.id}')">${badge}
+      <div class="type ${ev.type||'music'}">${TYPES[ev.type||'music'].nom}</div>
+      <div class="date">${x.getDate()}</div><div class="mois">${dmois(ev.date)}</div>
+      <h3>${esc(ev.titre)}</h3><div class="meta">${ev.debut} – ${ev.fin} · ${full?t('complet'):t('restantes')(r)}</div>
+      <div class="jauge"><i class="${full?'full':''}" style="width:${pct}%"></i></div></div>`;
+  }).join(''):`<div class="empty">${t('vide')}</div>`;
+  if(isAdmin) renderAdm();
+}
+function choisir(id){
+  const ev=events.find(e=>e.id===id); if(!ev||!ouverte(ev)) return;
+  selEv=ev; selSlot=null; $('okCard').classList.add('hidden'); $('formCard').classList.remove('hidden');
+  $('formTitle').textContent=ev.titre;
+  $('formMeta').textContent=`${dfull(ev.date)} · ${ev.debut} – ${ev.fin} · ${t('restantes')(reste(ev))}`;
+  $('slotPick').innerHTML=ev.slots.map(s=>`<span class="slot" onclick="pickSlot(this,'${s}')">${s}</span>`).join('');
+  const max=Math.min(reste(ev),12); let o='';
+  for(let n=ev.min;n<=max;n++) o+=`<option value="${n}">${t('pers')(n)}${n===ev.min?' '+t('table'):''}</option>`;
+  $('fPax').innerHTML=o; $('fErr').textContent=''; render();
+  $('formCard').scrollIntoView({behavior:'smooth'});
+}
+function pickSlot(el,s){selSlot=s;[...$('slotPick').children].forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function telComplet(){
+  let n=$('fTel').value.replace(/[^\d]/g,''); if(!n) return '';
+  const ind=$('fInd').value;
+  if(n.startsWith('00')) n=n.slice(2); else if(n.startsWith('0')) n=n.slice(1);
+  if(n.startsWith(ind)) n=n.slice(ind.length);
+  return '+'+ind+' '+n;
+}
+async function reserver(){
+  const ev=selEv, n=+$('fPax').value;
+  const nom=$('fNom').value.trim(), tel=telComplet(), mail=$('fMail').value.trim();
+  let err='';
+  if(!selSlot) err=t('eSlot'); else if(!nom) err=t('eNom'); else if(!tel&&!mail) err=t('eContact');
+  if(err){$('fErr').textContent=err;return;}
+  const code='BN-'+Math.random().toString(36).slice(2,6).toUpperCase();
+  const evRef=EV.doc(ev.id), langue=lang;
+  try{
+    await db.runTransaction(async tr=>{
+      const snap=await tr.get(evRef), d=snap.data();
+      if(!d||d.ferme) throw new Error(t('Ferme'));
+      if(n<d.min) throw new Error(t('eMin')(d.min));
+      const libre=d.cap-(d.pax||0);
+      if(n>libre) throw new Error(libre<d.min?t('Complet'):t('ePlaces')(libre));
+      tr.update(evRef,{pax:(d.pax||0)+n});
+      tr.set(RS.doc(),{ev:ev.id,code,nom,tel,mail,pax:n,slot:selSlot,note:$('fNote').value.trim(),lang:langue,ts:new Date().toISOString()});
+    });
+  }catch(e){ $('fErr').textContent=e.message||'Réservation impossible, réessayez.'; return; }
+  $('formCard').classList.add('hidden'); $('okCard').classList.remove('hidden');
+  $('okMsg').innerHTML=`<b>${t('okTitre')(code)}</b><br>${esc(nom)}, ${t('pers')(n)}, ${esc(ev.titre)}<br>${dfull(ev.date)}, ${t('arrivee')} ${selSlot}.<br><span class="note">${t('attendons')}</span>`;
+  ['fNom','fTel','fMail','fNote'].forEach(i=>$(i).value=''); selSlot=null; selEv=null;
+}
+
+/* ================= gestion ================= */
+function preremplir(){const c=TYPES[$('aType').value];$('aTitre').placeholder=c.titre;$('aDebut').value=c.debut;$('aFin').value=c.fin;$('aSlots').value=c.slots;}
+async function creerSoiree(){
+  const type=$('aType').value, titre=$('aTitre').value.trim(), date=$('aDate').value, debut=$('aDebut').value, fin=$('aFin').value;
+  const cap=+$('aCap').value, min=+$('aMin').value, limit=$('aLimit').value;
+  const slots=$('aSlots').value.split(',').map(s=>s.trim()).filter(s=>/^\d{1,2}:\d{2}$/.test(s));
+  let err='';
+  if(!titre) err='Donnez un titre à la soirée.'; else if(!date) err='La date est requise.';
+  else if(debut>=fin) err="L'heure de fin doit suivre l'heure de début."; else if(cap<min) err='La capacité doit être supérieure au minimum.';
+  else if(!slots.length) err="Indiquez au moins une heure d'arrivée (ex. 20:00).";
+  if(err){$('aErr').textContent=err;return;} $('aErr').textContent='';
+  try{ await EV.add({type,titre,date,debut,fin,cap,min,slots,limit,ferme:false,pax:0}); }
+  catch(e){ $('aErr').textContent='Enregistrement refusé : '+e.message; return; }
+  $('aTitre').value='';$('aDate').value='';$('aLimit').value='';
+}
+function renderAdm(){
+  const c=$('admList'); const evs=[...events].sort((a,b)=>b.date.localeCompare(a.date));
+  if(!evs.length){c.innerHTML='<div class="empty">Créez votre première soirée ci-dessus.</div>';return;}
+  c.innerHTML=evs.map(ev=>{
+    const rs=resas.filter(r=>r.ev===ev.id).sort((a,b)=>a.slot.localeCompare(b.slot)||a.nom.localeCompare(b.nom));
+    const p=pax(ev);
+    return `<div style="border-top:1.5px solid #e6e1d4;padding:18px 0">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+        <div><div class="type ${ev.type||'music'}">${TYPES[ev.type||'music'].nom}</div>
+        <h3 style="font-size:18px;color:var(--vert)">${esc(ev.titre)}</h3>
+        <div class="note">${dfull(ev.date,'fr')} · ${ev.debut} – ${ev.fin} · min. ${ev.min} pers.${ev.limit?" · réservations jusqu'au "+ev.limit:''}</div>
+        <div style="margin-top:4px">${ev.slots.map(s=>`<span class="chip">${s}</span>`).join('')}</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn sm ghost" onclick="toggleFerme('${ev.id}')">${ev.ferme?'Rouvrir':'Fermer les réservations'}</button>
+          <button class="btn sm ghost" onclick="exporter('${ev.id}')">Copier la liste</button>
+          <button class="btn sm danger" onclick="supprSoiree('${ev.id}')">Supprimer</button></div>
+      </div>
+      <div class="stat"><div><b>${p}</b><span>personnes</span></div><div><b>${rs.length}</b><span>réservations</span></div><div><b>${ev.cap-p}</b><span>places libres</span></div></div>
+      ${rs.length?`<table><tr><th>Arrivée</th><th>Nom</th><th>Pers.</th><th>Contact</th><th>Remarque</th><th>Code</th><th></th></tr>
+        ${rs.map(r=>`<tr><td>${r.slot}</td><td>${esc(r.nom)}<span class="flag">${(r.lang||'fr').toUpperCase()}</span></td><td>${r.pax}</td>
+        <td>${esc(r.tel)}${r.tel&&r.mail?'<br>':''}${esc(r.mail)}</td><td>${esc(r.note)}</td><td>${r.code}</td>
+        <td style="white-space:nowrap"><button class="btn sm wa" onclick="wa('${r.id}')" ${numeroWa(r.tel)?'':'disabled title="Pas de numéro"'}>WhatsApp</button>
+        <button class="btn sm danger" onclick="supprResa('${r.id}')">Annuler</button></td></tr>`).join('')}</table>`
+        :'<div class="note">Aucune réservation pour l\'instant.</div>'}
+    </div>`;
+  }).join('');
+}
+function toggleFerme(id){const ev=events.find(e=>e.id===id);if(ev)EV.doc(id).update({ferme:!ev.ferme});}
+async function supprSoiree(id){
+  if(!await ask('Supprimer cette soirée et toutes ses réservations ? Cette action est définitive.'))return;
+  const b=db.batch(); resas.filter(r=>r.ev===id).forEach(r=>b.delete(RS.doc(r.id))); b.delete(EV.doc(id)); await b.commit();
+}
+async function supprResa(id){
+  if(!await ask('Annuler cette réservation ? La place sera de nouveau disponible.','Annuler la réservation'))return;
+  const r=resas.find(x=>x.id===id); if(!r) return;
+  const b=db.batch(); b.delete(RS.doc(id));
+  b.update(EV.doc(r.ev),{pax:firebase.firestore.FieldValue.increment(-r.pax)}); await b.commit();
+}
+
+/* ---- WhatsApp ---- */
+function numeroWa(tel){
+  let n=String(tel||'').replace(/[^\d+]/g,'');
+  if(n.startsWith('+')) n=n.slice(1); else if(n.startsWith('00')) n=n.slice(2); else if(n.startsWith('0')) n='41'+n.slice(1);
+  return n.length>=8?n:'';
+}
+function wa(id){
+  const r=resas.find(x=>x.id===id); if(!r) return;
+  const ev=events.find(e=>e.id===r.ev), n=numeroWa(r.tel);
+  if(!n){ info('Aucun numéro de téléphone utilisable pour cette réservation.'); return; }
+  const msg=(WA[r.lang]||WA.fr)(r,ev);
+  window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function exporter(id){
+  const ev=events.find(e=>e.id===id); const rs=resas.filter(r=>r.ev===id).sort((a,b)=>a.slot.localeCompare(b.slot));
+  const txt=[`${TYPES[ev.type||'music'].nom} — ${ev.titre} — ${dfull(ev.date,'fr')}`,
+    'Arrivée\tNom\tLangue\tPers.\tTéléphone\tE-mail\tRemarque\tCode',
+    ...rs.map(r=>[r.slot,r.nom,(r.lang||'fr').toUpperCase(),r.pax,r.tel,r.mail,r.note,r.code].join('\t'))].join('\n');
+  try{ navigator.clipboard.writeText(txt).then(()=>info('Liste copiée — collez-la dans Excel ou un e-mail.'),()=>info('Sélectionnez le texte et copiez-le.',txt)); }
+  catch(e){ info('Sélectionnez le texte et copiez-le.',txt); }
+}
+
+/* ================= démarrage ================= */
+$('lang').innerHTML=Object.entries(LANGS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+$('fInd').innerHTML=IND.map(([cc,code,nom])=>`<option value="${code}">${flag(cc)} +${code}</option>`).join('');
+let l0='fr'; try{ l0=localStorage.getItem('bossa-lang')||(navigator.language||'fr').slice(0,2); }catch(e){}
+if(!LANGS[l0]) l0='fr';
+$('fInd').value={fr:'33',de:'49',pt:'55',es:'34',it:'39',en:'44'}[l0]||'41';
+setLang(l0);
+</script>
+</body>
+</html>

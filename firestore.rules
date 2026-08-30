@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function admin() { return request.auth != null; }
+    function soiree(id) { return get(/databases/$(database)/documents/soirees/$(id)).data; }
+
+    // Soirées : lecture publique (le site doit les afficher sans connexion).
+    // Écriture réservée à l'équipe, sauf le compteur de places qui monte lors d'une réservation.
+    match /soirees/{id} {
+      allow read: if true;
+      allow create, delete: if admin();
+      allow update: if admin()
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pax'])
+            && request.resource.data.pax > resource.data.pax
+            && request.resource.data.pax <= resource.data.cap
+            && resource.data.ferme == false);
+    }
+
+    // Réservations : création publique mais validée ; noms et contacts illisibles sans connexion.
+    match /reservations/{id} {
+      allow read, update, delete: if admin();
+      allow create: if
+        request.resource.data.keys().hasAll(['ev','nom','pax','slot','code','ts'])
+        && request.resource.data.nom is string
+        && request.resource.data.nom.size() > 1
+        && request.resource.data.nom.size() < 120
+        && request.resource.data.pax is int
+        && request.resource.data.pax >= soiree(request.resource.data.ev).min
+        && request.resource.data.pax <= 12
+        && request.resource.data.slot in soiree(request.resource.data.ev).slots
+        && soiree(request.resource.data.ev).ferme == false;
+    }
+  }
+}
