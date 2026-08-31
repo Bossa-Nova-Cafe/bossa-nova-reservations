@@ -35,11 +35,11 @@
   .evt .mois{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--gris)}
   .evt h3{font-size:17px;margin:8px 0 4px;letter-spacing:.03em}
   .evt .meta{font-size:13px;color:var(--gris)}
-  .evt .vignette{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;margin-bottom:12px;display:block;background:#f0ece1}
+  .evt .vignette{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:10px;margin-bottom:12px;display:block;background:#f0ece1}
   .evt .desc{font-size:13px;color:var(--gris);margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  #formImg{width:150px;aspect-ratio:1;object-fit:cover;border-radius:12px;float:right;margin:0 0 14px 18px;background:#f0ece1}
+  #formImg{width:210px;aspect-ratio:3/2;object-fit:cover;border-radius:12px;float:right;margin:0 0 14px 18px;background:#f0ece1}
   #formDesc{font-size:15px;margin:10px 0 0}
-  .vignetteAdm{width:52px;height:52px;object-fit:cover;border-radius:8px;float:left;margin:2px 12px 0 0;background:#f0ece1}
+  .vignetteAdm{width:78px;height:52px;object-fit:cover;border-radius:8px;float:left;margin:2px 12px 0 0;background:#f0ece1}
   .type{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-bottom:8px}
   .type.music{background:#F3EEF9;color:var(--violet)}
   .type.match{background:#FDF3D6;color:#8A6100}
@@ -106,7 +106,7 @@
     input,select,textarea{font-size:16px;padding:13px}
     .tel select{flex:0 0 122px}
     .evt{padding:18px}
-    #formImg{width:112px;margin:0 0 10px 14px}
+    #formImg{float:none;width:100%;margin:0 0 14px}
     #formDesc{font-size:16px}
     .evt .date{font-size:36px}
     .evt .mois{font-size:13px}
@@ -210,8 +210,8 @@
     </div>
     <label>Heures d'arrivée proposées</label>
     <input id="aSlots" value="19:30, 20:00, 20:30">
-    <label>Image carrée — adresse (optionnel)</label>
-    <input id="aImg" placeholder="https://bossa-nova-cafe.github.io/bossa-nova-reservations/images/…">
+    <label>Image 3:2 — adresse (optionnel)</label>
+    <input id="aImg" placeholder="https://bossa-nova-cafe.github.io/bossa-nova-reservations/samba.jpg">
     <label>Description (optionnel)</label>
     <textarea id="aDesc" rows="3" placeholder="Quelques lignes présentées au client : le groupe, le menu, l'invité…"></textarea>
     <p class="note">Séparez les heures par des virgules. Ce sont les créneaux proposés aux clients.</p>
