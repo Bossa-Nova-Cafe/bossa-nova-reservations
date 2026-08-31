@@ -35,6 +35,11 @@
   .evt .mois{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--gris)}
   .evt h3{font-size:17px;margin:8px 0 4px;letter-spacing:.03em}
   .evt .meta{font-size:13px;color:var(--gris)}
+  .evt .vignette{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;margin-bottom:12px;display:block;background:#f0ece1}
+  .evt .desc{font-size:13px;color:var(--gris);margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #formImg{width:150px;aspect-ratio:1;object-fit:cover;border-radius:12px;float:right;margin:0 0 14px 18px;background:#f0ece1}
+  #formDesc{font-size:15px;margin:10px 0 0}
+  .vignetteAdm{width:52px;height:52px;object-fit:cover;border-radius:8px;float:left;margin:2px 12px 0 0;background:#f0ece1}
   .type{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-bottom:8px}
   .type.music{background:#F3EEF9;color:var(--violet)}
   .type.match{background:#FDF3D6;color:#8A6100}
@@ -101,6 +106,8 @@
     input,select,textarea{font-size:16px;padding:13px}
     .tel select{flex:0 0 122px}
     .evt{padding:18px}
+    #formImg{width:112px;margin:0 0 10px 14px}
+    #formDesc{font-size:16px}
     .evt .date{font-size:36px}
     .evt .mois{font-size:13px}
     .evt h3{font-size:19px}
@@ -142,8 +149,10 @@
     <div id="pubList" class="grid"></div>
   </div>
   <div id="formCard" class="card hidden">
+    <img id="formImg" class="hidden" alt="" loading="lazy">
     <h2 id="formTitle"></h2>
     <p class="note" id="formMeta"></p>
+    <p id="formDesc"></p>
     <label id="t_heure"></label>
     <div class="slots" id="slotPick"></div>
     <div class="row">
@@ -201,6 +210,10 @@
     </div>
     <label>Heures d'arrivée proposées</label>
     <input id="aSlots" value="19:30, 20:00, 20:30">
+    <label>Image carrée — adresse (optionnel)</label>
+    <input id="aImg" placeholder="https://bossa-nova-cafe.github.io/bossa-nova-reservations/images/…">
+    <label>Description (optionnel)</label>
+    <textarea id="aDesc" rows="3" placeholder="Quelques lignes présentées au client : le groupe, le menu, l'invité…"></textarea>
     <p class="note">Séparez les heures par des virgules. Ce sont les créneaux proposés aux clients.</p>
     <div class="err" id="aErr"></div>
     <button class="btn" onclick="creerSoiree()">Créer l'événement</button>
@@ -361,9 +374,11 @@ function render(){
     const x=new Date(ev.date+'T12:00'), r=reste(ev), full=r<ev.min, pct=Math.min(100,pax(ev)/ev.cap*100);
     const badge=ev.ferme?`<span class="badge ferme">${t('Ferme')}</span>`:full?`<span class="badge">${t('Complet')}</span>`:'';
     return `<div class="evt ${selEv&&selEv.id===ev.id?'sel':''}" onclick="choisir('${ev.id}')">${badge}
+      ${ev.img?`<img class="vignette" src="${esc(ev.img)}" alt="" loading="lazy" onerror="this.remove()">`:''}
       <div class="type ${ev.type||'music'}">${TYPES[ev.type||'music'].nom}</div>
       <div class="date">${x.getDate()}</div><div class="mois">${dmois(ev.date)}</div>
       <h3>${esc(ev.titre)}</h3><div class="meta">${ev.debut} – ${ev.fin} · ${full?t('complet'):t('restantes')(r)}</div>
+      ${ev.desc?`<div class="desc">${esc(ev.desc)}</div>`:''}
       <div class="jauge"><i class="${full?'full':''}" style="width:${pct}%"></i></div></div>`;
   }).join(''):`<div class="empty">${t('vide')}</div>`;
   if(isAdmin) renderAdm();
@@ -371,6 +386,10 @@ function render(){
 function choisir(id){
   const ev=events.find(e=>e.id===id); if(!ev||!ouverte(ev)) return;
   selEv=ev; selSlot=null; $('okCard').classList.add('hidden'); $('formCard').classList.remove('hidden');
+  const im=$('formImg');
+  if(ev.img){im.src=ev.img;im.classList.remove('hidden');im.onerror=()=>im.classList.add('hidden');}
+  else im.classList.add('hidden');
+  $('formDesc').textContent=ev.desc||'';
   $('formTitle').textContent=ev.titre;
   $('formMeta').textContent=`${dfull(ev.date)} · ${ev.debut} – ${ev.fin} · ${t('restantes')(reste(ev))}`;
   $('slotPick').innerHTML=ev.slots.map(s=>`<span class="slot" onclick="pickSlot(this,'${s}')">${s}</span>`).join('');
@@ -454,15 +473,16 @@ function preremplir(){const c=TYPES[$('aType').value];$('aTitre').placeholder=c.
 async function creerSoiree(){
   const type=$('aType').value, titre=$('aTitre').value.trim(), date=$('aDate').value, debut=$('aDebut').value, fin=$('aFin').value;
   const cap=+$('aCap').value, min=+$('aMin').value, limit=$('aLimit').value;
+  const img=$('aImg').value.trim(), desc=$('aDesc').value.trim();
   const slots=$('aSlots').value.split(',').map(s=>s.trim()).filter(s=>/^\d{1,2}:\d{2}$/.test(s));
   let err='';
   if(!titre) err="Donnez un titre à l'événement."; else if(!date) err='La date est requise.';
   else if(debut>=fin) err="L'heure de fin doit suivre l'heure de début."; else if(cap<min) err='La capacité doit être supérieure au minimum.';
   else if(!slots.length) err="Indiquez au moins une heure d'arrivée (ex. 20:00).";
   if(err){$('aErr').textContent=err;return;} $('aErr').textContent='';
-  try{ await EV.add({type,titre,date,debut,fin,cap,min,slots,limit,ferme:false,pax:0}); }
+  try{ await EV.add({type,titre,date,debut,fin,cap,min,slots,limit,img,desc,ferme:false,pax:0}); }
   catch(e){ $('aErr').textContent='Enregistrement refusé : '+e.message; return; }
-  $('aTitre').value='';$('aDate').value='';$('aLimit').value='';
+  $('aTitre').value='';$('aDate').value='';$('aLimit').value='';$('aImg').value='';$('aDesc').value='';
 }
 function renderAdm(){
   const c=$('admList');
@@ -474,7 +494,7 @@ function renderAdm(){
     const p=pax(ev);
     return `<div style="border-top:1.5px solid #e6e1d4;padding:18px 0">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-        <div><div class="type ${ev.type||'music'}">${TYPES[ev.type||'music'].nom}</div>
+        <div>${ev.img?`<img class="vignetteAdm" src="${esc(ev.img)}" alt="" loading="lazy" onerror="this.remove()">`:''}<div class="type ${ev.type||'music'}">${TYPES[ev.type||'music'].nom}</div>
         <h3 style="font-size:18px;color:var(--vert)">${esc(ev.titre)}</h3>
         <div class="note">${dfull(ev.date,'fr')} · ${ev.debut} – ${ev.fin} · min. ${ev.min} pers.${ev.limit?" · réservations jusqu'au "+ev.limit:''}</div>
         <div style="margin-top:4px">${ev.slots.map(s=>`<span class="chip">${s}</span>`).join('')}</div></div>
