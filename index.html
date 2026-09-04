@@ -368,6 +368,7 @@ function go(v){
 }
 
 /* ================= public ================= */
+let cible=new URLSearchParams(location.search).get('e'), cibleFaite=false;
 function render(){
   const upcoming=events.filter(e=>!fini(e)).sort((a,b)=>a.date.localeCompare(b.date));
   $('pubList').innerHTML=upcoming.length?upcoming.map(ev=>{
@@ -382,6 +383,7 @@ function render(){
       <div class="jauge"><i class="${full?'full':''}" style="width:${pct}%"></i></div></div>`;
   }).join(''):`<div class="empty">${t('vide')}</div>`;
   if(isAdmin) renderAdm();
+  if(cible&&!cibleFaite&&events.some(e=>e.id===cible)){cibleFaite=true;choisir(cible);}
 }
 function choisir(id){
   const ev=events.find(e=>e.id===id); if(!ev||!ouverte(ev)) return;
@@ -500,6 +502,7 @@ function renderAdm(){
         <div style="margin-top:4px">${ev.slots.map(s=>`<span class="chip">${s}</span>`).join('')}</div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn sm ghost" onclick="toggleFerme('${ev.id}')">${ev.ferme?'Rouvrir':'Fermer les réservations'}</button>
+          <button class="btn sm ghost" onclick="lienEv('${ev.id}')">Lien à partager</button>
           <button class="btn sm ghost" onclick="exporter('${ev.id}')">Copier la liste</button>
           <button class="btn sm danger" onclick="supprSoiree('${ev.id}')">Supprimer</button></div>
       </div>
@@ -539,6 +542,11 @@ function wa(id){
   if(!n){ info('Aucun numéro de téléphone utilisable pour cette réservation.'); return; }
   const msg=(WA[r.lang]||WA.fr)(r,ev);
   window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function lienEv(id){
+  const ev=events.find(e=>e.id===id); const u=lienSite()+'?e='+id;
+  const msg=`${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'fr')}, ${ev.debut} – ${ev.fin}\nBossa Nova Café, Place de la Gare 3, 1800 Vevey\n\nRéservations : ${u}`;
+  info("Lien direct vers cet événement — à coller sur Instagram, Facebook ou dans un message.",u+'\n\n— — —\n\n'+msg);
 }
 function exporter(id){
   const ev=events.find(e=>e.id===id); const rs=resas.filter(r=>r.ev===id).sort((a,b)=>a.slot.localeCompare(b.slot));
