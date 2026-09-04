@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>Bossa Nova Café — Music Night &amp; Match Night</title>
+<title>Bossa Nova Café — Réservations</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -19,7 +19,8 @@
   header .inner{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
   header h1{font-size:clamp(28px,5vw,44px);line-height:1}
   header h1 span{color:var(--or)}
-  header p{margin:6px 0 0;opacity:.8;font-size:14px}
+  header p{margin:6px 0 0;opacity:.85;font-size:14px;line-height:1.45}
+  header p .adr{opacity:.65}
   .tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   nav button{background:transparent;border:1.5px solid rgba(251,246,234,.4);color:var(--creme);padding:8px 16px;border-radius:999px;font:500 13px Poppins;cursor:pointer;margin-left:6px}
   nav button.on{background:var(--or);border-color:var(--or);color:var(--vert-2)}
@@ -134,7 +135,8 @@
 </head>
 <body>
 <header><div class="inner">
-  <div><h1>Bossa Nova <span>Café</span></h1><p>Music Night &amp; Match Night · Place de la Gare 3, 1800 Vevey</p></div>
+  <div><h1>Bossa Nova <span>Café</span></h1>
+    <p>Music Night · Match Night · Feijoada · Culture<br><span class="adr">Place de la Gare 3, 1800 Vevey</span></p></div>
   <div class="tools">
     <select id="lang" onchange="setLang(this.value)" aria-label="Language"></select>
     <nav><button id="tabPub" class="on" onclick="go('pub')"></button><button id="tabAdm" onclick="go('adm')"></button></nav>
