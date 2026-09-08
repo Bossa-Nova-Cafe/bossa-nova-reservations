@@ -377,7 +377,7 @@ function render(){
     const x=new Date(ev.date+'T12:00'), r=reste(ev), full=r<ev.min, pct=Math.min(100,pax(ev)/ev.cap*100);
     const badge=ev.ferme?`<span class="badge ferme">${t('Ferme')}</span>`:full?`<span class="badge">${t('Complet')}</span>`:'';
     return `<div class="evt ${selEv&&selEv.id===ev.id?'sel':''}" onclick="choisir('${ev.id}')">${badge}
-      ${ev.img?`<img class="vignette" src="${esc(ev.img)}" alt="" loading="lazy" onerror="this.remove()">`:''}
+      ${ev.img?`<img class="vignette" src="${esc(imgUrl(ev.img))}" alt="" loading="lazy" onerror="this.remove()">`:''}
       <div class="type ${ev.type||'music'}">${TYPES[ev.type||'music'].nom}</div>
       <div class="date">${x.getDate()}</div><div class="mois">${dmois(ev.date)}</div>
       <h3>${esc(ev.titre)}</h3><div class="meta">${ev.debut} – ${ev.fin} · ${full?t('complet'):t('restantes')(r)}</div>
@@ -391,7 +391,7 @@ function choisir(id){
   const ev=events.find(e=>e.id===id); if(!ev||!ouverte(ev)) return;
   selEv=ev; selSlot=null; $('okCard').classList.add('hidden'); $('formCard').classList.remove('hidden');
   const im=$('formImg');
-  if(ev.img){im.src=ev.img;im.classList.remove('hidden');im.onerror=()=>im.classList.add('hidden');}
+  if(ev.img){im.src=imgUrl(ev.img);im.classList.remove('hidden');im.onerror=()=>im.classList.add('hidden');}
   else im.classList.add('hidden');
   $('formDesc').textContent=ev.desc||'';
   $('formTitle').textContent=ev.titre;
@@ -498,7 +498,7 @@ function renderAdm(){
     const p=pax(ev);
     return `<div style="border-top:1.5px solid #e6e1d4;padding:18px 0">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-        <div>${ev.img?`<img class="vignetteAdm" src="${esc(ev.img)}" alt="" loading="lazy" onerror="this.remove()">`:''}<div class="type ${ev.type||'music'}">${TYPES[ev.type||'music'].nom}</div>
+        <div>${ev.img?`<img class="vignetteAdm" src="${esc(imgUrl(ev.img))}" alt="" loading="lazy" onerror="this.remove()">`:''}<div class="type ${ev.type||'music'}">${TYPES[ev.type||'music'].nom}</div>
         <h3 style="font-size:18px;color:var(--vert)">${esc(ev.titre)}</h3>
         <div class="note">${dfull(ev.date,'fr')} · ${ev.debut} – ${ev.fin} · min. ${ev.min} pers.${ev.limit?" · réservations jusqu'au "+ev.limit:''}</div>
         <div style="margin-top:4px">${ev.slots.map(s=>`<span class="chip">${s}</span>`).join('')}</div></div>
@@ -546,6 +546,13 @@ function wa(id){
   const msg=(WA[r.lang]||WA.fr)(r,ev);
   window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`,'_blank');
 }
+function imgUrl(u){
+  u=String(u||'').trim(); if(!u) return '';
+  // adresse d'une PAGE GitHub collée par erreur → adresse du fichier image
+  const m=u.match(/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/(.+)$/i);
+  if(m) return `https://raw.githubusercontent.com/${m[1]}/${m[2]}/${m[3]}`;
+  return u;
+}
 function slug(s){
   return (s||'evenement').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
@@ -556,7 +563,7 @@ function pageEv(id){
   const nom=TYPES[ev.type||'music'].nom;
   const titre=`${nom} — ${ev.titre} · Bossa Nova Café`;
   const desc=(ev.desc||`${dfull(ev.date,'fr')}, ${ev.debut} – ${ev.fin}. Place de la Gare 3, 1800 Vevey. Réservation en ligne.`).replace(/\s+/g,' ').slice(0,300);
-  const img=ev.img||'';
+  const img=imgUrl(ev.img);
   const fichier=slug(ev.titre)+'.html';
   const url=base+fichier;
   const dest=base+'?e='+id;
