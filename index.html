@@ -82,6 +82,12 @@
   .stat b{display:block;font-family:Anton;font-size:30px;color:var(--vert);line-height:1}
   .stat span{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--gris)}
   .empty{text-align:center;color:var(--gris);padding:30px}
+  details.aide summary{font-family:Anton,Impact,sans-serif;font-size:19px;letter-spacing:.02em;text-transform:uppercase;color:var(--vert);cursor:pointer}
+  details.aide[open] summary{margin-bottom:12px}
+  details.aide ol{padding-left:20px;margin:0}
+  details.aide li{margin-bottom:11px;font-size:14px}
+  details.aide code{background:#f3efe3;padding:1px 6px;border-radius:5px;font-size:12.5px;word-break:break-all}
+  details.aide a{color:var(--vert)}
   h3.passes{font-size:13px;letter-spacing:.14em;color:var(--gris);margin:26px 0 -6px;padding-top:18px;border-top:2px solid #e6e1d4}
   .chip{display:inline-block;background:#F3EEF9;color:var(--violet);padding:2px 8px;border-radius:6px;font-size:12px;font-weight:500;margin:2px 2px 0 0}
   .flag{display:inline-block;background:#f0ece1;color:var(--gris);font-size:11px;font-weight:600;padding:1px 6px;border-radius:5px;margin-left:6px}
@@ -192,6 +198,21 @@
   <div id="admContent" class="hidden">
   <div style="text-align:right;margin-bottom:10px"><span class="note" id="whoami"></span>
     <button class="btn sm ghost" onclick="auth.signOut()">Déconnexion</button></div>
+  <details class="card aide">
+    <summary>Marche à suivre — publier un événement</summary>
+    <ol>
+      <li><b>Préparer l'image.</b> Format 3:2 (800 × 532 px), en <b>JPEG</b>, sous 300 Ko. Nom du fichier sans accent ni espace : <code>feijoada-octobre.jpg</code>.
+        Puis <a id="lkUpload" target="_blank" rel="noopener">déposer l'image sur GitHub</a> → <i>Commit changes</i>.
+        Son adresse devient <code id="lkImgEx"></code></li>
+      <li><b>Créer l'événement</b> dans le formulaire ci-dessous, en collant cette adresse dans le champ Image.
+        Soignez la description : ses 300 premiers caractères servent d'aperçu sur les réseaux, prix compris.</li>
+      <li><b>Générer la page de partage.</b> Bouton <b>Page réseaux sociaux</b> sur l'événement, puis copier le contenu affiché.</li>
+      <li><b>Créer le fichier</b> : <a id="lkNew" target="_blank" rel="noopener">nouveau fichier sur GitHub</a>, saisir le nom indiqué, coller, <i>Commit changes</i>.</li>
+      <li><b>Partager</b> l'adresse en <code>.html</code> après une minute — <a id="lkSite" target="_blank" rel="noopener">vérifier le site</a>.</li>
+    </ol>
+    <p class="note">Deux boutons, deux usages : <b>Lien à partager</b> donne l'adresse technique, pratique en interne ; <b>Page réseaux sociaux</b> prépare la page avec photo et description, pour Facebook et WhatsApp. Instagram n'affiche jamais d'aperçu de lien : l'adresse va en bio ou en story.</p>
+    <p class="note">Si vous modifiez l'image ou la description d'un événement déjà diffusé, régénérez la page, remplacez le fichier, puis ajoutez <code>?v=2</code> au lien pour forcer WhatsApp à oublier son cache. Pour Facebook, passer par son <a href="https://developers.facebook.com/tools/debug/" target="_blank" rel="noopener">outil de débogage</a>.</p>
+  </details>
   <div class="card">
     <h2 id="aTitreForm">Nouvel événement</h2>
     <div class="row">
@@ -648,6 +669,16 @@ $('fInd').innerHTML=IND.map(([cc,code,nom])=>`<option value="${code}">${flag(cc)
 let l0='fr'; try{ l0=localStorage.getItem('bossa-lang')||(navigator.language||'fr').slice(0,2); }catch(e){}
 if(!LANGS[l0]) l0='fr';
 $('fInd').value={fr:'41',de:'41',it:'41',pt:'55',es:'34',en:'44'}[l0]||'41';
+
+/* ---- liens de la marche à suivre, déduits de l'adresse du site ---- */
+(function(){
+  const h=location.hostname, seg=location.pathname.split('/').filter(Boolean);
+  let repo='https://github.com';
+  if(h.endsWith('github.io')) repo=`https://github.com/${h.split('.')[0]}/${seg[0]||''}`;
+  const l=(id,u)=>{const e=$(id); if(e) e.href=u;};
+  l('lkUpload',repo+'/upload/main'); l('lkNew',repo+'/new/main'); l('lkSite',lienSite());
+  const ex=$('lkImgEx'); if(ex) ex.textContent=lienSite()+'feijoada-octobre.jpg';
+})();
 setLang(l0);
 </script>
 </body>
