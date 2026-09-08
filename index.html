@@ -505,6 +505,7 @@ function renderAdm(){
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn sm ghost" onclick="toggleFerme('${ev.id}')">${ev.ferme?'Rouvrir':'Fermer les réservations'}</button>
           <button class="btn sm ghost" onclick="lienEv('${ev.id}')">Lien à partager</button>
+          <button class="btn sm ghost" onclick="pageEv('${ev.id}')">Page réseaux sociaux</button>
           <button class="btn sm ghost" onclick="exporter('${ev.id}')">Copier la liste</button>
           <button class="btn sm danger" onclick="supprSoiree('${ev.id}')">Supprimer</button></div>
       </div>
@@ -544,6 +545,48 @@ function wa(id){
   if(!n){ info('Aucun numéro de téléphone utilisable pour cette réservation.'); return; }
   const msg=(WA[r.lang]||WA.fr)(r,ev);
   window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function slug(s){
+  return (s||'evenement').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+}
+function pageEv(id){
+  const ev=events.find(e=>e.id===id); if(!ev) return;
+  const base=lienSite(), a=s=>String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const nom=TYPES[ev.type||'music'].nom;
+  const titre=`${nom} — ${ev.titre} · Bossa Nova Café`;
+  const desc=(ev.desc||`${dfull(ev.date,'fr')}, ${ev.debut} – ${ev.fin}. Place de la Gare 3, 1800 Vevey. Réservation en ligne.`).replace(/\s+/g,' ').slice(0,300);
+  const img=ev.img||'';
+  const fichier=slug(ev.titre)+'.html';
+  const url=base+fichier;
+  const dest=base+'?e='+id;
+  const html=`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${a(titre)}</title>
+<meta name="description" content="${a(desc)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Bossa Nova Café">
+<meta property="og:title" content="${a(titre)}">
+<meta property="og:description" content="${a(desc)}">${img?`
+<meta property="og:image" content="${a(img)}">
+<meta property="og:image:width" content="800">
+<meta property="og:image:height" content="532">`:''}
+<meta property="og:url" content="${a(url)}">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="${a(url)}">
+<meta http-equiv="refresh" content="0; url=${a(dest)}">
+<style>body{font-family:system-ui,sans-serif;background:#FBF6EA;color:#123F2B;display:grid;place-items:center;height:100vh;margin:0;text-align:center;padding:20px}a{color:#123F2B}</style>
+</head>
+<body>
+<div><p>Redirection vers la réservation…</p>
+<p><a href="${a(dest)}">${a(nom)} — ${a(ev.titre)}</a></p></div>
+<script>location.replace(${JSON.stringify(dest)});<\/script>
+</body>
+</html>`;
+  info(`Créez sur GitHub un fichier nommé « ${fichier} » et collez-y ce contenu. Le lien à partager sera alors : ${url}`, html);
 }
 function lienEv(id){
   const ev=events.find(e=>e.id===id); const u=lienSite()+'?e='+id;
