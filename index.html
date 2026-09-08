@@ -193,7 +193,7 @@
   <div style="text-align:right;margin-bottom:10px"><span class="note" id="whoami"></span>
     <button class="btn sm ghost" onclick="auth.signOut()">Déconnexion</button></div>
   <div class="card">
-    <h2>Nouvel événement</h2>
+    <h2 id="aTitreForm">Nouvel événement</h2>
     <div class="row">
       <div><label>Type d'événement</label><select id="aType" onchange="preremplir()"><option value="music">Music Night</option><option value="match">Match Night</option><option value="feijoada">Feijoada</option><option value="culture">Culture</option></select></div>
       <div><label>Titre</label><input id="aTitre" placeholder="Ex. Samba de roda avec …"></div>
@@ -218,7 +218,10 @@
     <textarea id="aDesc" rows="3" placeholder="Quelques lignes présentées au client : le groupe, le menu, l'invité…"></textarea>
     <p class="note">Séparez les heures par des virgules. Ce sont les créneaux proposés aux clients.</p>
     <div class="err" id="aErr"></div>
-    <button class="btn" onclick="creerSoiree()">Créer l'événement</button>
+    <div class="okActs" style="margin-top:0">
+      <button class="btn" id="aBtn" onclick="creerSoiree()">Créer l'événement</button>
+      <button class="btn ghost hidden" id="aAnnul" onclick="annulerEdition()">Annuler la modification</button>
+    </div>
   </div>
   <div class="card">
     <h2>Événements programmés</h2>
@@ -474,6 +477,27 @@ function inviter(){
 
 /* ================= gestion ================= */
 function preremplir(){const c=TYPES[$('aType').value];$('aTitre').placeholder=c.titre;$('aDebut').value=c.debut;$('aFin').value=c.fin;$('aSlots').value=c.slots;$('aMin').value=c.min;}
+let enEdition=null;
+function editer(id){
+  const ev=events.find(e=>e.id===id); if(!ev) return;
+  enEdition=id;
+  $('aType').value=ev.type||'music'; $('aTitre').value=ev.titre; $('aDate').value=ev.date;
+  $('aDebut').value=ev.debut; $('aFin').value=ev.fin; $('aLimit').value=ev.limit||'';
+  $('aCap').value=ev.cap; $('aMin').value=ev.min; $('aSlots').value=(ev.slots||[]).join(', ');
+  $('aImg').value=ev.img||''; $('aDesc').value=ev.desc||'';
+  $('aTitreForm').textContent='Modifier l\u2019événement';
+  $('aBtn').textContent='Enregistrer les modifications';
+  $('aAnnul').classList.remove('hidden'); $('aErr').textContent='';
+  $('aTitreForm').scrollIntoView({behavior:'smooth'});
+}
+function annulerEdition(){
+  enEdition=null;
+  $('aTitreForm').textContent='Nouvel événement';
+  $('aBtn').textContent="Créer l'événement";
+  $('aAnnul').classList.add('hidden'); $('aErr').textContent='';
+  ['aTitre','aDate','aLimit','aImg','aDesc'].forEach(i=>$(i).value='');
+  $('aCap').value=40; preremplir();
+}
 async function creerSoiree(){
   const type=$('aType').value, titre=$('aTitre').value.trim(), date=$('aDate').value, debut=$('aDebut').value, fin=$('aFin').value;
   const cap=+$('aCap').value, min=+$('aMin').value, limit=$('aLimit').value;
@@ -484,9 +508,17 @@ async function creerSoiree(){
   else if(debut>=fin) err="L'heure de fin doit suivre l'heure de début."; else if(cap<min) err='La capacité doit être supérieure au minimum.';
   else if(!slots.length) err="Indiquez au moins une heure d'arrivée (ex. 20:00).";
   if(err){$('aErr').textContent=err;return;} $('aErr').textContent='';
-  try{ await EV.add({type,titre,date,debut,fin,cap,min,slots,limit,img,desc,ferme:false,pax:0}); }
+  try{
+    if(enEdition){
+      const ev=events.find(e=>e.id===enEdition);
+      if(cap<(ev?ev.pax||0:0)) { $('aErr').textContent=`Capacité inférieure aux ${ev.pax} personnes déjà réservées.`; return; }
+      await EV.doc(enEdition).update({type,titre,date,debut,fin,cap,min,slots,limit,img,desc});
+    } else {
+      await EV.add({type,titre,date,debut,fin,cap,min,slots,limit,img,desc,ferme:false,pax:0});
+    }
+  }
   catch(e){ $('aErr').textContent='Enregistrement refusé : '+e.message; return; }
-  $('aTitre').value='';$('aDate').value='';$('aLimit').value='';$('aImg').value='';$('aDesc').value='';
+  annulerEdition();
 }
 function renderAdm(){
   const c=$('admList');
@@ -503,6 +535,7 @@ function renderAdm(){
         <div class="note">${dfull(ev.date,'fr')} · ${ev.debut} – ${ev.fin} · min. ${ev.min} pers.${ev.limit?" · réservations jusqu'au "+ev.limit:''}</div>
         <div style="margin-top:4px">${ev.slots.map(s=>`<span class="chip">${s}</span>`).join('')}</div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn sm ghost" onclick="editer('${ev.id}')">Modifier</button>
           <button class="btn sm ghost" onclick="toggleFerme('${ev.id}')">${ev.ferme?'Rouvrir':'Fermer les réservations'}</button>
           <button class="btn sm ghost" onclick="lienEv('${ev.id}')">Lien à partager</button>
           <button class="btn sm ghost" onclick="pageEv('${ev.id}')">Page réseaux sociaux</button>
