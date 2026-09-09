@@ -96,9 +96,11 @@
   .modal.hidden{display:none}
   .modal .box{background:#fff;border-radius:var(--r);padding:24px;max-width:440px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.25)}
   .modal p{margin:0 0 18px;font-size:16px}
-  .modal .acts{display:flex;gap:10px;justify-content:flex-end}
+  .modal .acts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
   .modal .btn{margin-top:0}
   .modal textarea{font:400 12px/1.4 ui-monospace,monospace;margin-bottom:14px}
+  .modal .lienBox{width:100%;font:500 13px ui-monospace,monospace;margin-bottom:12px;background:#F3F7F4;border-color:var(--vert);color:var(--vert-2)}
+  .modal .acts{flex-wrap:wrap}
   @media(max-width:600px){
     body{font-size:16px}
     header{padding:20px 16px 18px}
@@ -364,13 +366,24 @@ function ask(msg,okLabel='Supprimer'){
     $('mNo').onclick=()=>done(false); $('mYes').onclick=()=>done(true); $('mYes').focus();
   });
 }
-function info(msg,texte){
+function copierPresse(v,ok){
+  const secours=()=>{const ta=document.createElement('textarea');ta.value=v;ta.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(ta);ta.select();try{document.execCommand('copy');ok();}catch(e){}ta.remove();};
+  try{ navigator.clipboard.writeText(v).then(ok,secours); }catch(e){ secours(); }
+}
+function info(msg,texte,actions,lien){
   $('modalMsg').textContent=msg;
-  $('modalExtra').innerHTML=texte?'<textarea rows="8" readonly onclick="this.select()">'+esc(texte)+'</textarea>':'';
-  $('modalActs').innerHTML='<button class="btn" id="mOk">Fermer</button>';
+  $('modalExtra').innerHTML=(lien?`<input class="lienBox" readonly value="${esc(lien)}" onclick="this.select()">`:'')
+    +(texte?'<textarea rows="7" readonly onclick="this.select()">'+esc(texte)+'</textarea>':'');
+  actions=actions||[];
+  $('modalActs').innerHTML=actions.map((a,i)=>`<button class="btn ghost" id="mCp${i}">${esc(a.label)}</button>`).join('')
+    +'<button class="btn" id="mOk">Fermer</button>';
   $('modal').classList.remove('hidden');
+  actions.forEach((a,i)=>{
+    const b=$('mCp'+i);
+    b.onclick=()=>{const t=b.textContent;copierPresse(a.value,()=>{b.textContent='Copié \u2713';setTimeout(()=>b.textContent=t,1600);});};
+  });
   $('mOk').onclick=()=>$('modal').classList.add('hidden'); $('mOk').focus();
-  if(texte) $('modalExtra').querySelector('textarea').select();
 }
 
 /* ================= utilitaires ================= */
@@ -647,12 +660,14 @@ function pageEv(id){
 <script>location.replace(${JSON.stringify(dest)});<\/script>
 </body>
 </html>`;
-  info(`Créez sur GitHub un fichier nommé « ${fichier} » et collez-y ce contenu. Le lien à partager sera alors : ${url}`, html);
+  info(`Créez sur GitHub un fichier nommé « ${fichier} » et collez-y le contenu ci-dessous. Le lien à partager sera alors :`, html,
+    [{label:'Copier le lien',value:url},{label:'Copier le contenu',value:html}], url);
 }
 function lienEv(id){
   const ev=events.find(e=>e.id===id); const u=lienSite()+'?e='+id;
   const msg=`${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'fr')}, ${ev.debut} – ${ev.fin}\nBossa Nova Café, Place de la Gare 3, 1800 Vevey\n\nRéservations : ${u}`;
-  info("Lien direct vers cet événement — à coller sur Instagram, Facebook ou dans un message.",u+'\n\n— — —\n\n'+msg);
+  info("Lien direct vers cet événement, et le texte d'annonce prêt à coller.",msg,
+    [{label:'Copier le lien',value:u},{label:"Copier l'annonce",value:msg}], u);
 }
 function exporter(id){
   const ev=events.find(e=>e.id===id); const rs=resas.filter(r=>r.ev===id).sort((a,b)=>a.slot.localeCompare(b.slot));
