@@ -3,121 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Une Afrique sans passeport · Jean-Pierre Salerno · Bossa Nova Café</title>
-
-<meta name="description" content="Vevey, 1984. À 20 ans, Jean-Pierre Salerno prend la route avec Farafina, groupe burkinabè mené par Mahama Konaté. De Wembley à Berlin-Est, ces années changeront sa vision du monde. Un récit de musique, de rencontres et de racines.">
-
-<!-- Open Graph : WhatsApp, Facebook, etc. -->
+<title>Feijoada — Feijoada du Samedi · Bossa Nova Café</title>
+<meta name="description" content="La feijoada, c'est le plat du samedi au Brésil : haricots noirs mijotés lentement avec des viandes fumées, riz, farofa et quartiers d'orange. À partager sans se presser, avec un peu de musique. CHF 20.50 par personne sur réservation, CHF 25.– sur place. Places limitées.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Bossa Nova Café">
-
-<meta property="og:title" content="Une Afrique sans passeport · Jean-Pierre Salerno">
-
-<meta property="og:description" content="Vevey, 1984. À 20 ans, Jean-Pierre Salerno prend la route avec Farafina, groupe burkinabè mené par Mahama Konaté. De Wembley à Berlin-Est, ces années changeront sa vision du monde. Un récit de musique, de rencontres et de racines.">
-
-<!-- À remplacer par l'URL publique de l'image du livre -->
-<meta property="og:image" content="https://bossa-nova-cafe.github.io/bossa-nova-reservations/une_afrique_sans_passeport.jpg">
-
+<meta property="og:title" content="Feijoada — Feijoada du Samedi · Bossa Nova Café">
+<meta property="og:description" content="La feijoada, c'est le plat du samedi au Brésil : haricots noirs mijotés lentement avec des viandes fumées, riz, farofa et quartiers d'orange. À partager sans se presser, avec un peu de musique. CHF 20.50 par personne sur réservation, CHF 25.– sur place. Places limitées.">
+<meta property="og:image" content="https://bossa-nova-cafe.github.io/bossa-nova-reservations/feijoada_du_samedi.jpg">
 <meta property="og:image:width" content="800">
-<meta property="og:image:height" content="1200">
-
-<!-- URL de cette page -->
-<meta property="og:url" content="https://bossa-nova-cafe.github.io/bossa-nova-reservations/une_afrique_sans_passeport.html">
-
+<meta property="og:image:height" content="532">
+<meta property="og:url" content="https://bossa-nova-cafe.github.io/bossa-nova-reservations/feijoada-du-samedi.html">
 <meta name="twitter:card" content="summary_large_image">
-
-<link rel="canonical" href="https://bossa-nova-cafe.github.io/bossa-nova-reservations/une_afrique_sans_passeport.html">
-
-<style>
-
-body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #FBF6EA;
-    color: #123F2B;
-    margin: 0;
-    padding: 30px 20px;
-}
-
-.container {
-    max-width: 650px;
-    margin: auto;
-    text-align: center;
-}
-
-h1 {
-    font-size: 32px;
-    margin-bottom: 5px;
-}
-
-h2 {
-    font-size: 20px;
-    font-weight: 400;
-    margin-top: 0;
-}
-
-.description {
-    font-size: 17px;
-    line-height: 1.6;
-    margin: 30px 0;
-}
-
-.button {
-    display: inline-block;
-    padding: 14px 24px;
-    margin: 8px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.amazon {
-    background: #123F2B;
-    color: white;
-}
-
-.event {
-    border: 2px solid #123F2B;
-    color: #123F2B;
-    background: transparent;
-}
-
-</style>
-
+<link rel="canonical" href="https://bossa-nova-cafe.github.io/bossa-nova-reservations/feijoada-du-samedi.html">
+<meta http-equiv="refresh" content="0; url=https://bossa-nova-cafe.github.io/bossa-nova-reservations/?e=QNhThU0CHGbjs0qtVPtK">
+<style>body{font-family:system-ui,sans-serif;background:#FBF6EA;color:#123F2B;display:grid;place-items:center;height:100vh;margin:0;text-align:center;padding:20px}a{color:#123F2B}</style>
 </head>
-
 <body>
-
-<div class="container">
-
-<h1>Une Afrique sans passeport</h1>
-
-<h2>Jean-Pierre Salerno</h2>
-
-<p class="description">
-Vevey, 1984. À 20 ans, Jean-Pierre Salerno prend la route avec Farafina,
-groupe burkinabè mené par Mahama Konaté. De Wembley à Berlin-Est,
-ces années changeront sa vision du monde.
-Un récit de musique, de rencontres et de racines.
-</p>
-
-<a
-class="button amazon"
-href="https://www.amazon.fr/dp/B0H9LM22W5"
-target="_blank"
-rel="noopener">
-Commander le livre
-</a>
-
-<br>
-
-<a
-class="button event"
-href="https://bossa-nova-cafe.github.io/bossa-nova-reservations/">
-Voir le vernissage
-</a>
-
-</div>
-
+<div><p>Redirection vers la réservation…</p>
+<p><a href="https://bossa-nova-cafe.github.io/bossa-nova-reservations/?e=QNhThU0CHGbjs0qtVPtK">Feijoada — Feijoada du Samedi</a></p></div>
+<script>location.replace("https://bossa-nova-cafe.github.io/bossa-nova-reservations/?e=QNhThU0CHGbjs0qtVPtK");</script>
 </body>
 </html>
