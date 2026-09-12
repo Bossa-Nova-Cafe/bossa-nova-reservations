@@ -163,6 +163,7 @@
     <h2 id="formTitle"></h2>
     <p class="note" id="formMeta"></p>
     <p id="formDesc"></p>
+    <button class="btn wa sm" id="t_inviter2" onclick="inviterAvant()" style="margin-top:14px"></button>
     <label id="t_heure"></label>
     <div class="slots" id="slotPick"></div>
     <div class="row">
@@ -292,6 +293,21 @@ const T2={
  it:{agenda:'Aggiungi al mio calendario',inviter:'Invitare amici',ics:'Altro calendario (Apple, Outlook…)'}
 };
 Object.keys(T2).forEach(l=>Object.assign(T[l],T2[l]));
+
+/* invitation envoyée AVANT de réserver, pour sonder ses amis */
+function lienEvt(ev){return lienSite()+'?e='+ev.id;}
+const INV0={
+ fr:ev=>`On va au Bossa Nova Café ?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nRéserve ta place ici : ${lienEvt(ev)}`,
+ en:ev=>`Fancy Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nBook your seat here: ${lienEvt(ev)}`,
+ de:ev=>`Lust auf das Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nHier reservieren: ${lienEvt(ev)}`,
+ pt:ev=>`Bora no Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nReserve seu lugar aqui: ${lienEvt(ev)}`,
+ es:ev=>`¿Vamos al Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nReserva tu plaza aquí: ${lienEvt(ev)}`,
+ it:ev=>`Andiamo al Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nPrenota il tuo posto qui: ${lienEvt(ev)}`
+};
+function inviterAvant(){
+  if(!selEv) return;
+  window.open('https://wa.me/?text='+encodeURIComponent((INV0[lang]||INV0.fr)(selEv)),'_blank');
+}
 const t=k=>T[lang][k];
 
 /* invitations envoyées par le client à ses amis */
@@ -336,6 +352,7 @@ function setLang(l){
   $('t_note').textContent=t('note'); $('fNote').placeholder=t('notePh');
   $('t_valider').textContent=t('valider'); $('t_nouvelle').textContent=t('nouvelle');
   $('t_agenda').textContent=t('agenda'); $('t_inviter').textContent=t('inviter'); $('t_ics').textContent=t('ics');
+  $('t_inviter2').textContent=t('inviter');
   render(); if(selEv) choisir(selEv.id);
 }
 
