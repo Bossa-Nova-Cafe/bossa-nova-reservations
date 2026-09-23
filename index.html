@@ -593,7 +593,7 @@ async function creerSoiree(){
   const slots=$('aSlots').value.split(',').map(s=>s.trim()).filter(s=>/^\d{1,2}:\d{2}$/.test(s));
   let err='';
   if(!titre) err="Donnez un titre à l'événement."; else if(!date) err='La date est requise.';
-  else if(debut>=fin) err="L'heure de fin doit suivre l'heure de début."; else if(cap<min) err='La capacité doit être supérieure au minimum.';
+  else if(cap<min) err='La capacité doit être supérieure au minimum.';
   else if(!slots.length) err="Indiquez au moins une heure d'arrivée (ex. 20:00).";
   if(err){$('aErr').textContent=err;return;} $('aErr').textContent='';
   try{
