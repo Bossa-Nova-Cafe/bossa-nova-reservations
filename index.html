@@ -1,4 +1,3 @@
-<!-- Build force: 1794069159 -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -52,6 +51,7 @@
   .type.football{background:#FDF3D6;color:#8A6100}
   .type.pizza{background:#FFE4CC;color:#CC5500}
   .type.special{background:#E2EEF4;color:#1F5A78}
+  .type.theme{background:#FCE4EC;color:#A3214F}
   .jauge{height:6px;background:#eee8d9;border-radius:3px;margin-top:10px;overflow:hidden}
   .jauge i{display:block;height:100%;background:var(--or)}
   .jauge i.full{background:var(--rouge)}
@@ -150,7 +150,11 @@
 <body>
 <header><div class="inner">
   <div><h1>Bossa Nova <span>Café</span></h1>
-    <p>Music Night · Match Night · Feijoada · Culture<br><span class="adr">Place de la Gare 3, 1800 Vevey</span></p></div>
+    <p style="font-size:13px;font-weight:500;line-height:1.6;margin:12px 0 0">
+      <span style="text-transform:uppercase;letter-spacing:.08em">Jeudi</span> — Cultura<br>
+      <span style="text-transform:uppercase;letter-spacing:.08em">Vendredi</span> — Brasil<br>
+      <span style="text-transform:uppercase;letter-spacing:.08em">Samedi</span> — Pub 90's & More<br>
+      <span class="adr" style="display:block;margin-top:8px">Place de la Gare 3, 1800 Vevey</span></p></div>
   <div class="tools">
     <select id="lang" onchange="setLang(this.value)" aria-label="Language"></select>
     <nav><button id="tabPub" class="on" onclick="go('pub')"></button><button id="tabAdm" onclick="go('adm')"></button></nav>
@@ -225,7 +229,7 @@
   <div class="card">
     <h2 id="aTitreForm">Nouvel événement</h2>
     <div class="row">
-      <div><label>Type d'événement</label><select id="aType" onchange="preremplir()"><option value="culture">Culture</option><option value="brasil">Brasil</option><option value="saturday">Saturday Pub</option><option value="football">Football</option><option value="pizza">Pizza a Gogo</option><option value="feijoada">Feijoada</option><option value="special">Événement Spécial</option><option value="music">Music Night (legacy)</option><option value="match">Match Night (legacy)</option></select></div>
+      <div><label>Type d'événement</label><select id="aType" onchange="preremplir()"><option value="culture">Culture</option><option value="brasil">Brasil</option><option value="saturday">Saturday Pub</option><option value="football">Football</option><option value="pizza">Pizza a Gogo</option><option value="feijoada">Feijoada</option><option value="theme">Soirée à thème</option><option value="special">Événement Spécial</option><option value="music">Music Night (legacy)</option><option value="match">Match Night (legacy)</option></select></div>
       <div><label>Titre</label><input id="aTitre" placeholder="Ex. Samba de roda avec …"></div>
     </div>
     <div class="row">
@@ -410,15 +414,18 @@ function info(msg,texte,actions,lien){
 }
 
 /* ================= utilitaires ================= */
-const TYPES={culture:{nom:'Culture',titre:'Ex. Lancement de livre — …',debut:'18:30',fin:'21:00',slots:'18:00, 18:30, 19:00',min:1},
-             brasil:{nom:'Brasil',titre:'Ex. Samba de roda avec …',debut:'20:00',fin:'23:00',slots:'19:30, 20:00, 20:30',min:2},
-             saturday:{nom:'Saturday Pub',titre:'Ex. 90s Night',debut:'20:00',fin:'23:00',slots:'19:30, 20:00, 20:30',min:2},
-             football:{nom:'Football',titre:'Ex. Brésil – Argentine',debut:'20:00',fin:'23:00',slots:'19:00, 19:30, 20:00',min:2},
-             pizza:{nom:'Pizza a Gogo',titre:'Ex. Pizza du samedi',debut:'18:30',fin:'21:00',slots:'18:30, 19:00, 19:30, 20:00, 20:30, 21:00',min:2},
-             feijoada:{nom:'Feijoada',titre:'Ex. Feijoada complète',debut:'12:00',fin:'15:00',slots:'11:30, 12:00, 12:30, 13:00',min:2},
-             special:{nom:'Événement Spécial',titre:'Ex. …',debut:'18:30',fin:'23:00',slots:'18:00, 18:30, 19:00, 20:00',min:1},
-             music:{nom:'Music Night',titre:'Ex. Samba de roda avec …',debut:'20:00',fin:'23:00',slots:'19:30, 20:00, 20:30',min:2},
-             match:{nom:'Match Night',titre:'Ex. Brésil – Argentine',debut:'20:00',fin:'23:00',slots:'19:00, 19:30, 20:00',min:2}};
+const TYPES={
+  culture:{nom:'Culture',titre:'Ex. Lancement de livre — …',debut:'18:30',fin:'21:00',slots:'18:00, 18:30, 19:00',min:1},
+  brasil:{nom:'Brasil',titre:'Ex. Samba de roda avec …',debut:'20:00',fin:'23:00',slots:'19:30, 20:00, 20:30',min:2},
+  saturday:{nom:'Saturday Pub',titre:'Ex. 90s Night',debut:'20:00',fin:'23:00',slots:'19:30, 20:00, 20:30',min:2},
+  football:{nom:'Football',titre:'Ex. Brésil – Argentine',debut:'20:00',fin:'23:00',slots:'19:00, 19:30, 20:00',min:2},
+  pizza:{nom:'Pizza a Gogo',titre:'Ex. Pizza du samedi',debut:'18:30',fin:'21:00',slots:'18:30, 19:00, 19:30, 20:00, 20:30, 21:00',min:2},
+  feijoada:{nom:'Feijoada',titre:'Ex. Feijoada complète',debut:'12:00',fin:'15:00',slots:'11:30, 12:00, 12:30, 13:00',min:2},
+  theme:{nom:'Soirée à thème',titre:'Ex. Halloween is not over',debut:'19:00',fin:'00:30',slots:'19:30, 20:30, 22:30',min:1},
+  special:{nom:'Événement Spécial',titre:'Ex. …',debut:'18:30',fin:'23:00',slots:'18:00, 18:30, 19:00, 20:00',min:1},
+  music:{nom:'Music Night',titre:'Ex. Samba de roda avec …',debut:'20:00',fin:'23:00',slots:'19:30, 20:00, 20:30',min:2},
+  match:{nom:'Match Night',titre:'Ex. Brésil – Argentine',debut:'20:00',fin:'23:00',slots:'19:00, 19:30, 20:00',min:2}
+};
 const today=()=>new Date().toLocaleDateString('sv-SE');
 function dfull(d,l){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[l||lang],{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(x);}
 function dmois(d){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[lang],{month:'short'}).format(x)+' '+x.getFullYear();}
@@ -558,7 +565,30 @@ function annulerEdition(){
   $('aBtn').textContent="Créer l'événement";
   $('aAnnul').classList.add('hidden'); $('aErr').textContent='';
   ['aTitre','aDate','aLimit','aImg','aDesc'].forEach(i=>$(i).value='');
-  $('aCap').value=40; preremplir();
+  $('aCap').value=40; $('aType').value='culture'; preremplir();
+}
+function dupliquerSoiree(id){
+  const ev=events.find(e=>e.id===id); if(!ev) return;
+  const d=new Date(ev.date+'T12:00');
+  d.setDate(d.getDate()+7);
+  const newDate=d.toLocaleDateString('sv-SE');
+  enEdition=null;
+  $('aType').value=ev.type||'culture';
+  $('aTitre').value=ev.titre;
+  $('aDate').value=newDate;
+  $('aDebut').value=ev.debut;
+  $('aFin').value=ev.fin;
+  $('aLimit').value=ev.limit||'';
+  $('aCap').value=ev.cap;
+  $('aMin').value=ev.min;
+  $('aSlots').value=(ev.slots||[]).join(', ');
+  $('aImg').value=ev.img||'';
+  $('aDesc').value=ev.desc||'';
+  $('aTitreForm').textContent='Dupliquer l\'événement';
+  $('aBtn').textContent='Créer l\'événement dupliqué';
+  $('aAnnul').classList.remove('hidden');
+  $('aErr').textContent='';
+  $('aTitreForm').scrollIntoView({behavior:'smooth'});
 }
 async function creerSoiree(){
   const type=$('aType').value, titre=$('aTitre').value.trim(), date=$('aDate').value, debut=$('aDebut').value, fin=$('aFin').value;
@@ -567,7 +597,7 @@ async function creerSoiree(){
   const slots=$('aSlots').value.split(',').map(s=>s.trim()).filter(s=>/^\d{1,2}:\d{2}$/.test(s));
   let err='';
   if(!titre) err="Donnez un titre à l'événement."; else if(!date) err='La date est requise.';
-  else if(debut>=fin) err="L'heure de fin doit suivre l'heure de début."; else if(cap<min) err='La capacité doit être supérieure au minimum.';
+  else if(cap<min) err='La capacité doit être supérieure au minimum.';
   else if(!slots.length) err="Indiquez au moins une heure d'arrivée (ex. 20:00).";
   if(err){$('aErr').textContent=err;return;} $('aErr').textContent='';
   try{
@@ -598,6 +628,7 @@ function renderAdm(){
         <div style="margin-top:4px">${ev.slots.map(s=>`<span class="chip">${s}</span>`).join('')}</div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn sm ghost" onclick="editer('${ev.id}')">Modifier</button>
+          <button class="btn sm ghost" onclick="dupliquerSoiree('${ev.id}')">Dupliquer</button>
           <button class="btn sm ghost" onclick="toggleFerme('${ev.id}')">${ev.ferme?'Rouvrir':'Fermer les réservations'}</button>
           <button class="btn sm ghost" onclick="lienEv('${ev.id}')">Lien à partager</button>
           <button class="btn sm ghost" onclick="pageEv('${ev.id}')">Page réseaux sociaux</button>
@@ -724,5 +755,6 @@ $('fInd').value={fr:'41',de:'41',it:'41',pt:'55',es:'34',en:'44'}[l0]||'41';
 })();
 setLang(l0);
 </script>
+<script data-goatcounter="https://bossanova.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
