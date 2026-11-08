@@ -209,6 +209,7 @@
     <button class="btn" onclick="login()">Se connecter</button>
   </div>
   <div id="admContent" class="hidden">
+  <script src="../soirees/nav-admin.js" data-page="reservations"></script>
   <div style="text-align:right;margin-bottom:10px"><span class="note" id="whoami"></span>
     <button class="btn sm ghost" onclick="auth.signOut()">Déconnexion</button></div>
   <details class="card aide">
@@ -754,6 +755,8 @@ $('fInd').value={fr:'41',de:'41',it:'41',pt:'55',es:'34',en:'44'}[l0]||'41';
   const ex=$('lkImgEx'); if(ex) ex.textContent=lienSite()+'feijoada-octobre.jpg';
 })();
 setLang(l0);
+// Lien direct vers la gestion depuis l'administration : index.html#gestion
+if (location.hash === '#gestion') go('adm');
 </script>
 <script data-goatcounter="https://bossanova.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
