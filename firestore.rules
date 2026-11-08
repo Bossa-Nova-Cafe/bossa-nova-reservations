@@ -9,6 +9,13 @@ service cloud.firestore {
         && (!exists(/databases/$(database)/documents/parametres/equipe)
             || request.auth.token.email.lower() in get(/databases/$(database)/documents/parametres/equipe).data.emails);
     }
+    // Les managers : la liste « managers » du même document. Sans cette liste, chaque membre de l'équipe est manager.
+    function manager() {
+      return admin()
+        && (!exists(/databases/$(database)/documents/parametres/equipe)
+            || !('managers' in get(/databases/$(database)/documents/parametres/equipe).data)
+            || request.auth.token.email.lower() in get(/databases/$(database)/documents/parametres/equipe).data.managers);
+    }
     function soiree(id) { return get(/databases/$(database)/documents/soirees/$(id)).data; }
 
     // Soirées : lecture publique (le site doit les afficher sans connexion).
@@ -54,7 +61,7 @@ service cloud.firestore {
     // Équipe : la liste des e-mails autorisés, gérée depuis l'accueil de l'administration
     match /parametres/equipe {
       allow read: if request.auth != null;
-      allow write: if admin();
+      allow write: if manager();
     }
 
     // Stock du café : réservé à l'équipe
@@ -63,6 +70,16 @@ service cloud.firestore {
     }
     match /stock-mouvements/{id} {
       allow read, write: if admin();
+    }
+
+    // Caisse : chaque membre saisit et envoie sa fermeture ; seul un manager la clôture. Une fermeture clôturée ne change plus.
+    match /caisse-fermetures/{id} {
+      allow read: if admin();
+      allow create: if admin() && request.resource.data.statut != 'cloturee';
+      allow update: if resource.data.statut != 'cloturee'
+        && (manager() || (admin() && request.resource.data.statut != 'cloturee'));
+      allow delete: if resource.data.statut != 'cloturee'
+        && (manager() || (admin() && resource.data.statut == 'brouillon'));
     }
   }
 }
