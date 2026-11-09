@@ -64,6 +64,12 @@ service cloud.firestore {
       allow write: if manager();
     }
 
+    // Statistiques : la clé GoatCounter (lecture seule), lisible par l'équipe, modifiable par les managers
+    match /parametres/goatcounter {
+      allow read: if admin();
+      allow write: if manager();
+    }
+
     // Stock du café : réservé à l'équipe
     match /stock-articles/{id} {
       allow read, write: if admin();
