@@ -207,6 +207,11 @@
     <label id="t_note"></label><textarea id="fNote" rows="2"></textarea>
     <div class="err" id="fErr"></div>
     <button class="btn or" id="t_valider" onclick="reserver()"></button>
+
+    <div style="display: flex; gap: 12px; margin-top: 16px;">
+      <button onclick="shareFormEventLink()" style="flex: 1; background: #25D366; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">📱 Partager l'événement</button>
+      <button onclick="copyFormEventLink()" style="flex: 1; background: var(--or); color: var(--vert); padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">📋 Copier le lien</button>
+    </div>
   </div>
   <div id="okCard" class="card hidden"><div class="ok" id="okMsg"></div>
     <div class="okActs">
@@ -720,6 +725,29 @@ function shareEventLink(){
 
 function copyEventLink(){
   const url=getEventShareUrl(); if(!url) return;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn=event.target;
+    const originalText=btn.textContent;
+    btn.textContent='✓ Copié !';
+    setTimeout(()=>{btn.textContent=originalText;},2000);
+  });
+}
+
+/* ---- Partage depuis le formulaire ---- */
+function getFormEventShareUrl(){
+  if(!selEv) return '';
+  const baseUrl=lienSite()+'?e='+selEv.id;
+  return baseUrl+'&v='+Date.now();
+}
+
+function shareFormEventLink(){
+  const url=getFormEventShareUrl(); if(!url) return;
+  const text=encodeURIComponent('Viens réserver une place avec moi au Bossa Nova Café ! '+url);
+  window.open('https://wa.me/?text='+text,'_blank');
+}
+
+function copyFormEventLink(){
+  const url=getFormEventShareUrl(); if(!url) return;
   navigator.clipboard.writeText(url).then(()=>{
     const btn=event.target;
     const originalText=btn.textContent;
