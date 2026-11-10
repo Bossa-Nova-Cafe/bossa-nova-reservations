@@ -68,6 +68,11 @@
       </div>
 
       <button class="cta" id="bookBtn" disabled>Chargement...</button>
+
+      <div style="display: flex; gap: 12px; margin-top: 16px;">
+        <button onclick="shareLink()" style="flex: 1; background: #25D366; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">📱 Partager sur WhatsApp</button>
+        <button onclick="copyLink()" style="flex: 1; background: #E9B93A; color: #8B4513; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">📋 Copier le lien</button>
+      </div>
     </div>
   </div>
 
@@ -76,6 +81,28 @@
   </footer>
 
   <script>
+    // Fonctions de partage
+    function getShareUrl() {
+      const baseUrl = window.location.href.split('?')[0];
+      return baseUrl + '?v=' + Date.now();
+    }
+
+    function shareLink() {
+      const url = getShareUrl();
+      const text = encodeURIComponent('Réserve ta place au Bossa Nova Café ! ' + url);
+      window.open('https://wa.me/?text=' + text, '_blank');
+    }
+
+    function copyLink() {
+      const url = getShareUrl();
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = '✓ Copié !';
+        setTimeout(() => { btn.textContent = originalText; }, 2000);
+      });
+    }
+
     const firebaseConfig = {
       apiKey: "AIzaSyBThArHa0NGg6uofH3Ettv-tLuyx_h3qMs",
       authDomain: "bossa-nova-reservations.firebaseapp.com",
