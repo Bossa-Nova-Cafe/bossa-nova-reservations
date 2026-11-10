@@ -391,7 +391,23 @@ function setLang(l){
 }
 
 /* ================= données temps réel ================= */
-EV.orderBy('date').onSnapshot(q=>{events=q.docs.map(d=>({id:d.id,...d.data()}));render();},e=>console.error(e));
+EV.orderBy('date').onSnapshot(q=>{
+  events=q.docs.map(d=>({id:d.id,...d.data()}));
+  // Migration : recalculer paxByDate à partir des réservations
+  events.forEach(ev=>{
+    if(ev.mode==='periode' && (!ev.paxByDate || Object.keys(ev.paxByDate).length===0)){
+      const newPaxByDate={};
+      resas.filter(r=>r.ev===ev.id).forEach(r=>{
+        if(r.date) newPaxByDate[r.date]=(newPaxByDate[r.date]||0)+r.pax;
+      });
+      if(Object.keys(newPaxByDate).length>0){
+        EV.doc(ev.id).update({paxByDate:newPaxByDate});
+        ev.paxByDate=newPaxByDate;
+      }
+    }
+  });
+  render();
+},e=>console.error(e));
 let unsubRs=null;
 auth.onAuthStateChanged(u=>{
   isAdmin=!!u;
