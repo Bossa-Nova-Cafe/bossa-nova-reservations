@@ -853,8 +853,8 @@ function renderAdm(){
           }).join('')}
         </div>
       </div>`:''}
-      ${rs.length?`<table><thead><tr><th>Arrivée</th><th>Nom</th><th>Pers.</th><th>Contact</th><th>Remarque</th><th>Code</th><th></th></tr></thead><tbody>
-        ${rs.map(r=>`<tr><td data-l="Arrivée">${r.slot}</td><td data-l="Nom">${esc(r.nom)}<span class="flag">${(r.lang||'fr').toUpperCase()}</span></td><td data-l="Pers.">${r.pax}</td>
+      ${rs.length?`<table><thead><tr><th>Arrivée</th>${ev.mode==='periode'?'<th>Date</th>':''}<th>Nom</th><th>Pers.</th><th>Contact</th><th>Remarque</th><th>Code</th><th></th></tr></thead><tbody>
+        ${rs.map(r=>`<tr><td data-l="Arrivée">${r.slot}</td>${ev.mode==='periode'?`<td data-l="Date">${r.date?new Date(r.date+'T12:00').toLocaleDateString('fr-FR'):'–'}</td>`:''}<td data-l="Nom">${esc(r.nom)}<span class="flag">${(r.lang||'fr').toUpperCase()}</span></td><td data-l="Pers.">${r.pax}</td>
         <td data-l="Contact">${esc(r.tel)}${r.tel&&r.mail?'<br>':''}${esc(r.mail)}</td><td data-l="Remarque">${esc(r.note)}</td><td data-l="Code">${r.code}</td>
         <td class="acts" style="white-space:nowrap"><button class="btn sm wa" onclick="wa('${r.id}')" ${numeroWa(r.tel)?'':'disabled title="Pas de numéro"'}>WhatsApp</button>
         <button class="btn sm danger" onclick="supprResa('${r.id}')">Annuler</button></td></tr>`).join('')}</tbody></table>`
@@ -958,9 +958,9 @@ function lienEv(id){
 }
 function exporter(id){
   const ev=events.find(e=>e.id===id); const rs=resas.filter(r=>r.ev===id).sort((a,b)=>a.slot.localeCompare(b.slot));
-  const txt=[`${TYPES[ev.type||'music'].nom} — ${ev.titre} — ${dfull(ev.date,'fr')}`,
-    'Arrivée\tNom\tLangue\tPers.\tTéléphone\tE-mail\tRemarque\tCode',
-    ...rs.map(r=>[r.slot,r.nom,(r.lang||'fr').toUpperCase(),r.pax,r.tel,r.mail,r.note,r.code].join('\t'))].join('\n');
+  const enTete=ev.mode==='periode'?'Arrivée\tDate\tNom\tLangue\tPers.\tTéléphone\tE-mail\tRemarque\tCode':'Arrivée\tNom\tLangue\tPers.\tTéléphone\tE-mail\tRemarque\tCode';
+  const lignes=rs.map(r=>ev.mode==='periode'?[r.slot,r.date||'–',r.nom,(r.lang||'fr').toUpperCase(),r.pax,r.tel,r.mail,r.note,r.code].join('\t'):[r.slot,r.nom,(r.lang||'fr').toUpperCase(),r.pax,r.tel,r.mail,r.note,r.code].join('\t'));
+  const txt=[`${TYPES[ev.type||'music'].nom} — ${ev.titre} — ${ev.mode==='periode'?ev.dateDebut+' à '+ev.dateFin:dfull(ev.date,'fr')}`,enTete,...lignes].join('\n');
   try{ navigator.clipboard.writeText(txt).then(()=>info('Liste copiée — collez-la dans Excel ou un e-mail.'),()=>info('Sélectionnez le texte et copiez-le.',txt)); }
   catch(e){ info('Sélectionnez le texte et copiez-le.',txt); }
 }
