@@ -214,6 +214,12 @@
       <button class="btn wa" id="t_inviter" onclick="inviter()"></button>
     </div>
     <a href="#" class="ics" id="t_ics" onclick="icsFile();return false"></a>
+
+    <div style="display: flex; gap: 12px; margin-top: 16px;">
+      <button onclick="shareEventLink()" style="flex: 1; background: #25D366; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">📱 Partager sur WhatsApp</button>
+      <button onclick="copyEventLink()" style="flex: 1; background: var(--or); color: var(--vert); padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">📋 Copier le lien</button>
+    </div>
+
     <button class="btn ghost" id="t_nouvelle" onclick="go('pub')"></button></div>
 </section>
 
@@ -697,6 +703,29 @@ function icsFile(){
 function inviter(){
   const d=derniere; if(!d) return;
   window.open('https://wa.me/?text='+encodeURIComponent((INV[lang]||INV.fr)(d)),'_blank');
+}
+
+/* ---- Partage de l'événement ---- */
+function getEventShareUrl(){
+  const d=derniere; if(!d) return '';
+  const baseUrl=lienSite()+'?e='+d.ev;
+  return baseUrl+'&v='+Date.now();
+}
+
+function shareEventLink(){
+  const url=getEventShareUrl(); if(!url) return;
+  const text=encodeURIComponent('Réserve ta place au Bossa Nova Café ! '+url);
+  window.open('https://wa.me/?text='+text,'_blank');
+}
+
+function copyEventLink(){
+  const url=getEventShareUrl(); if(!url) return;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn=event.target;
+    const originalText=btn.textContent;
+    btn.textContent='✓ Copié !';
+    setTimeout(()=>{btn.textContent=originalText;},2000);
+  });
 }
 
 /* ================= gestion ================= */
