@@ -245,6 +245,18 @@
       <div><label>Date début</label><input id="aDateDebut" type="date"></div>
       <div><label>Date fin</label><input id="aDateFin" type="date"></div>
     </div>
+    <div id="joursDiv" class="hidden" style="padding:14px;background:#F3F7F4;border-radius:10px">
+      <label style="display:block;margin-bottom:10px">Jours disponibles</label>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px">
+        <label style="display:flex;align-items:center;gap:6px;margin:0;font-weight:400;text-transform:none;letter-spacing:0"><input type="checkbox" id="jourLun" data-day="1"> Lundi</label>
+        <label style="display:flex;align-items:center;gap:6px;margin:0;font-weight:400;text-transform:none;letter-spacing:0"><input type="checkbox" id="jourMar" data-day="2"> Mardi</label>
+        <label style="display:flex;align-items:center;gap:6px;margin:0;font-weight:400;text-transform:none;letter-spacing:0"><input type="checkbox" id="jourMer" data-day="3"> Mercredi</label>
+        <label style="display:flex;align-items:center;gap:6px;margin:0;font-weight:400;text-transform:none;letter-spacing:0"><input type="checkbox" id="jourJeu" data-day="4"> Jeudi</label>
+        <label style="display:flex;align-items:center;gap:6px;margin:0;font-weight:400;text-transform:none;letter-spacing:0"><input type="checkbox" id="jourVen" data-day="5"> Vendredi</label>
+        <label style="display:flex;align-items:center;gap:6px;margin:0;font-weight:400;text-transform:none;letter-spacing:0"><input type="checkbox" id="jourSam" data-day="6"> Samedi</label>
+        <label style="display:flex;align-items:center;gap:6px;margin:0;font-weight:400;text-transform:none;letter-spacing:0"><input type="checkbox" id="jourDim" data-day="0"> Dimanche</label>
+      </div>
+    </div>
     <div class="row">
       <div><label>Début</label><input id="aDebut" type="time" value="20:00"></div>
       <div><label>Fin</label><input id="aFin" type="time" value="23:00"></div>
@@ -443,9 +455,15 @@ function dfull(d,l){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(
 function dmois(d){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[lang],{month:'short'}).format(x)+' '+x.getFullYear();}
 function pax(ev){return ev.pax||0;}
 function reste(ev){return ev.cap-pax(ev);}
-function genererDates(dateDebut,dateFin){
+function genererDates(dateDebut,dateFin,jours){
   const d=new Date(dateDebut+'T12:00'), fin=new Date(dateFin+'T12:00');
-  const dates=[]; while(d<=fin){dates.push(d.toLocaleDateString('sv-SE'));d.setDate(d.getDate()+1);}
+  const dates=[];
+  while(d<=fin){
+    if(!jours||jours.length===0||jours.includes(d.getDay())){
+      dates.push(d.toLocaleDateString('sv-SE'));
+    }
+    d.setDate(d.getDate()+1);
+  }
   return dates;
 }
 function fini(ev){
@@ -494,7 +512,7 @@ function choisir(id){
   $('formDesc').textContent=ev.desc||'';
   $('formTitle').textContent=ev.titre;
   if(ev.mode==='periode'){
-    const dates=genererDates(ev.dateDebut,ev.dateFin);
+    const dates=genererDates(ev.dateDebut,ev.dateFin,ev.jours);
     const suspensions=ev.suspensions||[];
     $('datePickDiv').classList.remove('hidden');
     $('datePick').innerHTML=dates.map(d=>{
@@ -595,6 +613,26 @@ function changerMode(){
   const mode=$('aMode').value;
   $('modeUniqueDiv').classList.toggle('hidden',mode!=='unique');
   $('modePeriodeDiv').classList.toggle('hidden',mode!=='periode');
+  $('joursDiv').classList.toggle('hidden',mode!=='periode');
+}
+function getJoursCoches(){
+  const jours=[];
+  ['jourLun','jourMar','jourMer','jourJeu','jourVen','jourSam','jourDim'].forEach(id=>{
+    const el=$(id);
+    if(el&&el.checked){
+      jours.push(+el.getAttribute('data-day'));
+    }
+  });
+  return jours;
+}
+function setJoursCoches(jours){
+  ['jourLun','jourMar','jourMer','jourJeu','jourVen','jourSam','jourDim'].forEach(id=>{
+    const el=$(id);
+    if(el){
+      const day=+el.getAttribute('data-day');
+      el.checked=(jours||[]).includes(day);
+    }
+  });
 }
 function preremplir(){const c=TYPES[$('aType').value];$('aTitre').placeholder=c.titre;$('aDebut').value=c.debut;$('aFin').value=c.fin;$('aSlots').value=c.slots;$('aMin').value=c.min;}
 let enEdition=null;
@@ -604,6 +642,7 @@ function editer(id){
   $('aType').value=ev.type||'music'; $('aTitre').value=ev.titre; $('aMode').value=ev.mode||'unique';
   if(ev.mode==='periode'){
     $('aDateDebut').value=ev.dateDebut||''; $('aDateFin').value=ev.dateFin||'';
+    setJoursCoches(ev.jours||[]);
   } else {
     $('aDate').value=ev.date||'';
   }
@@ -622,6 +661,7 @@ function annulerEdition(){
   $('aBtn').textContent="Créer l'événement";
   $('aAnnul').classList.add('hidden'); $('aErr').textContent='';
   ['aTitre','aDate','aDateDebut','aDateFin','aLimit','aImg','aDesc'].forEach(i=>$(i).value='');
+  setJoursCoches([]);
   $('aCap').value=40; $('aType').value='culture'; $('aMode').value='unique'; changerMode(); preremplir();
 }
 function dupliquerSoiree(id){
@@ -636,6 +676,7 @@ function dupliquerSoiree(id){
     d2.setDate(d2.getDate()+7);
     $('aDateDebut').value=d1.toLocaleDateString('sv-SE');
     $('aDateFin').value=d2.toLocaleDateString('sv-SE');
+    setJoursCoches(ev.jours||[]);
   } else {
     const d=new Date(ev.date+'T12:00');
     d.setDate(d.getDate()+7);
@@ -668,17 +709,19 @@ async function creerSoiree(){
     dateDebut=$('aDateDebut').value;
     dateFin=$('aDateFin').value;
   }
+  const jours=mode==='periode'?getJoursCoches():[];
   let err='';
   if(!titre) err="Donnez un titre à l'événement.";
   else if(mode==='unique'&&!date) err='La date est requise.';
   else if(mode==='periode'&&(!dateDebut||!dateFin)) err='Les dates début et fin sont requises.';
+  else if(mode==='periode'&&!jours.length) err='Choisissez au moins un jour de la semaine.';
   else if(cap<min) err='La capacité doit être supérieure au minimum.';
   else if(!slots.length) err="Indiquez au moins une heure d'arrivée (ex. 20:00).";
   if(err){$('aErr').textContent=err;return;} $('aErr').textContent='';
   try{
     const data={type,titre,mode,debut,fin,cap,min,slots,limit,img,desc};
     if(mode==='unique') data.date=date;
-    else { data.dateDebut=dateDebut; data.dateFin=dateFin; }
+    else { data.dateDebut=dateDebut; data.dateFin=dateFin; data.jours=jours; }
     if(enEdition){
       const ev=events.find(e=>e.id===enEdition);
       if(cap<(ev?ev.pax||0:0)) { $('aErr').textContent=`Capacité inférieure aux ${ev.pax} personnes déjà réservées.`; return; }
@@ -722,7 +765,7 @@ function renderAdm(){
       ${ev.mode==='periode'?`<div style="margin-top:14px;padding:14px;background:#f9f7f4;border-radius:10px">
         <div style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--gris);margin-bottom:10px">Gestion des dates</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-          ${genererDates(ev.dateDebut,ev.dateFin).map(d=>{
+          ${genererDates(ev.dateDebut,ev.dateFin,ev.jours).map(d=>{
             const susp=(ev.suspensions||[]).includes(d);
             return `<button class="btn sm ${susp?'danger':'ghost'}" onclick="toggleSuspension('${ev.id}','${d}')" title="${susp?'Réactiver':'Suspendre'}">${new Date(d+'T12:00').getDate()} ${susp?'(fermée)':''}</button>`;
           }).join('')}
