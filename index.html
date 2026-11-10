@@ -942,7 +942,7 @@ async function supprResa(id){
   const dateRes=r.date||ev.date;
   const paxByDate=ev.paxByDate||{};
   const newPaxByDate={...paxByDate, [dateRes]:Math.max(0,(paxByDate[dateRes]||0)-r.pax)};
-  b.update(EV.doc(r.ev),{paxByDate:newPaxByDate}); await b.commit();
+  b.update(EV.doc(r.ev),{paxByDate:newPaxByDate}); await b.commit(); render();
 }
 
 /* ---- WhatsApp ---- */
