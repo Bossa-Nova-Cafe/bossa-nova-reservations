@@ -482,14 +482,21 @@ function resteParDate(ev,date){
   return ev.cap-paxThisDate;
 }
 function reste(ev){
-  // Ancienne fonction : places libres minimales sur toutes les dates
-  // (pour la jauge globale, on montre le minimum disponible)
+  // Places libres minimales sur toutes les dates (pour la jauge globale)
   const paxByDate=ev.paxByDate||{};
-  let minReste=ev.cap;
-  Object.entries(paxByDate).forEach(([d,p])=>{
-    minReste=Math.min(minReste,ev.cap-p);
-  });
-  return minReste;
+  if(ev.mode==='periode'){
+    // Pour les périodes, on vérifie TOUTES les dates possibles
+    const dates=genererDates(ev.dateDebut,ev.dateFin,ev.jours);
+    let minReste=ev.cap;
+    dates.forEach(d=>{
+      minReste=Math.min(minReste,ev.cap-(paxByDate[d]||0));
+    });
+    return minReste;
+  } else {
+    // Mode unique : utiliser paxByDate ou fallback pax
+    const pax=Object.values(paxByDate).reduce((a,b)=>a+b,0)||ev.pax||0;
+    return ev.cap-pax;
+  }
 }
 function genererDates(dateDebut,dateFin,jours){
   const d=new Date(dateDebut+'T12:00'), fin=new Date(dateFin+'T12:00');
