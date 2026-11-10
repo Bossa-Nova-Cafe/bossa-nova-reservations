@@ -10,6 +10,8 @@
 <meta property="og:url" content="https://bossa-nova-cafe.github.io/bossa-nova-reservations/brasil-complet.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: Poppins, system-ui, sans-serif; background: #FBF6EA; color: #1B1B1B; }
@@ -27,6 +29,7 @@
   .cta { background: #123F2B; color: #FBF6EA; padding: 16px 32px; border: none; border-radius: 50px; font-size: 16px; font-weight: 600; cursor: pointer; margin: 30px 0; width: 100%; transition: background 0.3s; }
   .cta:hover { background: #0B2A1D; }
   footer { padding: 20px; text-align: center; color: #8A8579; font-size: 14px; }
+  .loading { text-align: center; padding: 40px 20px; }
   @media (max-width: 600px) { .details { grid-template-columns: 1fr; } header h1 { font-size: 24px; } }
 </style>
 </head>
@@ -65,12 +68,45 @@
         </div>
       </div>
 
-      <button class="cta" onclick="window.location.href='index.html?e=brasil'">Réserver une table</button>
+      <button class="cta" id="bookBtn" disabled>Chargement...</button>
     </div>
   </div>
 
   <footer>
     Bossa Nova Café — Place de la Gare 3, 1800 Vevey
   </footer>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBThArHa0NGg6uofH3Ettv-tLuyx_h3qMs",
+      authDomain: "bossa-nova-reservations.firebaseapp.com",
+      projectId: "bossa-nova-reservations",
+      storageBucket: "bossa-nova-reservations.firebasestorage.app",
+      messagingSenderId: "822948399521",
+      appId: "1:822948399521:web:29a6656da27b13580c63e0"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Chercher automatiquement l'événement de type "brasil"
+    db.collection('soirees').where('type', '==', 'brasil').limit(1).get()
+      .then(querySnapshot => {
+        const btn = document.getElementById('bookBtn');
+        if (!querySnapshot.empty) {
+          const eventId = querySnapshot.docs[0].id;
+          btn.textContent = 'Réserver une table';
+          btn.disabled = false;
+          btn.onclick = () => { window.location.href = 'index.html?e=' + eventId; };
+        } else {
+          btn.textContent = 'Événement non disponible';
+          btn.style.background = '#ccc';
+        }
+      })
+      .catch(error => {
+        const btn = document.getElementById('bookBtn');
+        btn.textContent = 'Erreur de connexion';
+        btn.style.background = '#ccc';
+      });
+  </script>
 </body>
 </html>
