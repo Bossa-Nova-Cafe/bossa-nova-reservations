@@ -617,12 +617,22 @@ function changerMode(){
 }
 function getJoursCoches(){
   const jours=[];
+  console.log('📋 getJoursCoches() appelée');
   ['jourLun','jourMar','jourMer','jourJeu','jourVen','jourSam','jourDim'].forEach(id=>{
     const el=$(id);
+    if(!el){
+      console.warn(`⚠️ Checkbox ${id} non trouvée!`);
+      return;
+    }
+    const day=el.getAttribute('data-day');
+    console.log(`  ${id}: checked=${el.checked}, data-day="${day}"`);
     if(el&&el.checked){
-      jours.push(+el.getAttribute('data-day'));
+      const dayNum=+day;
+      jours.push(dayNum);
+      console.log(`    ✓ Jour ${dayNum} ajouté`);
     }
   });
+  console.log('📋 Jours retournés:', jours);
   return jours;
 }
 function setJoursCoches(jours){
@@ -698,18 +708,24 @@ function dupliquerSoiree(id){
   $('aTitreForm').scrollIntoView({behavior:'smooth'});
 }
 async function creerSoiree(){
+  console.log('🟢 creerSoiree() lancée');
   const type=$('aType').value, titre=$('aTitre').value.trim(), mode=$('aMode').value, debut=$('aDebut').value, fin=$('aFin').value;
   const cap=+$('aCap').value, min=+$('aMin').value, limit=$('aLimit').value;
   const img=$('aImg').value.trim(), desc=$('aDesc').value.trim();
   const slots=$('aSlots').value.split(',').map(s=>s.trim()).filter(s=>/^\d{1,2}:\d{2}$/.test(s));
   let date, dateDebut, dateFin;
+  console.log('Mode sélectionné:', mode);
   if(mode==='unique'){
     date=$('aDate').value;
+    console.log('Mode UNIQUE - Date:', date);
   } else {
     dateDebut=$('aDateDebut').value;
     dateFin=$('aDateFin').value;
+    console.log('Mode PERIODE - Date début:', dateDebut, '- Date fin:', dateFin);
   }
   const jours=mode==='periode'?getJoursCoches():[];
+  console.log('Jours cochés:', jours, '(length:', jours.length, ')');
+  console.log('Détails formulaire:', {titre, cap, min, debut, fin, slots});
   let err='';
   if(!titre) err="Donnez un titre à l'événement.";
   else if(mode==='unique'&&!date) err='La date est requise.';
@@ -717,21 +733,42 @@ async function creerSoiree(){
   else if(mode==='periode'&&!jours.length) err='Choisissez au moins un jour de la semaine.';
   else if(cap<min) err='La capacité doit être supérieure au minimum.';
   else if(!slots.length) err="Indiquez au moins une heure d'arrivée (ex. 20:00).";
-  if(err){$('aErr').textContent=err;return;} $('aErr').textContent='';
+  if(err){
+    console.error('❌ Erreur de validation:', err);
+    $('aErr').textContent=err;
+    return;
+  }
+  $('aErr').textContent='';
+  console.log('✅ Validation réussie, préparation des données...');
   try{
     const data={type,titre,mode,debut,fin,cap,min,slots,limit,img,desc};
     if(mode==='unique') data.date=date;
     else { data.dateDebut=dateDebut; data.dateFin=dateFin; data.jours=jours; }
+    console.log('📤 Données à envoyer à Firebase:', data);
+    console.log('En édition?', !!enEdition);
     if(enEdition){
       const ev=events.find(e=>e.id===enEdition);
-      if(cap<(ev?ev.pax||0:0)) { $('aErr').textContent=`Capacité inférieure aux ${ev.pax} personnes déjà réservées.`; return; }
+      if(cap<(ev?ev.pax||0:0)) {
+        console.error('Capacité insuffisante');
+        $('aErr').textContent=`Capacité inférieure aux ${ev.pax} personnes déjà réservées.`;
+        return;
+      }
+      console.log('📝 Mise à jour de l\'événement:', enEdition);
       await EV.doc(enEdition).update(data);
     } else {
       data.ferme=false; data.pax=0; data.suspensions=[];
+      console.log('➕ Création d\'un nouvel événement');
       await EV.add(data);
     }
+    console.log('🎉 Événement enregistré avec succès!');
   }
-  catch(e){ $('aErr').textContent='Enregistrement refusé : '+e.message; return; }
+  catch(e){
+    console.error('❌ Erreur Firebase:', e);
+    console.error('Message:', e.message);
+    console.error('Stack:', e.stack);
+    $('aErr').textContent='Enregistrement refusé : '+e.message;
+    return;
+  }
   annulerEdition();
 }
 function renderAdm(){
