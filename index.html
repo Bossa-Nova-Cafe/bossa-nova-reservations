@@ -242,6 +242,7 @@
   <div id="admContent" class="hidden">
   <script src="../soirees/nav-admin.js" data-page="reservations"></script>
   <div style="text-align:right;margin-bottom:10px"><span class="note" id="whoami"></span>
+    <button class="btn sm ghost" onclick="configurerGitHub()">🔑 Token GitHub</button>
     <button class="btn sm ghost" onclick="auth.signOut()">Déconnexion</button></div>
   <details class="card aide">
     <summary>Marche à suivre — publier un événement</summary>
@@ -713,13 +714,14 @@ function inviter(){
 /* ---- Partage de l'événement ---- */
 function getEventShareUrl(){
   const d=derniere; if(!d) return '';
-  const baseUrl=lienSite()+'?e='+d.ev;
-  return baseUrl+'&v='+Date.now();
+  // Pointer vers la page événement générée automatiquement
+  const baseUrl=lienSite()+'event-'+d.ev+'.html';
+  return baseUrl+'?v='+Date.now();
 }
 
 function shareEventLink(){
   const url=getEventShareUrl(); if(!url) return;
-  const text=encodeURIComponent('Réserve ta place au Bossa Nova Café ! '+url);
+  const text=encodeURIComponent('Je viens de réserver au Bossa Nova Café ! '+url);
   window.open('https://wa.me/?text='+text,'_blank');
 }
 
@@ -736,8 +738,9 @@ function copyEventLink(){
 /* ---- Partage depuis le formulaire ---- */
 function getFormEventShareUrl(){
   if(!selEv) return '';
-  const baseUrl=lienSite()+'?e='+selEv.id;
-  return baseUrl+'&v='+Date.now();
+  // Pointer vers la page événement générée automatiquement
+  const baseUrl=lienSite()+'event-'+selEv.id+'.html';
+  return baseUrl+'?v='+Date.now();
 }
 
 function shareFormEventLink(){
@@ -754,6 +757,36 @@ function copyFormEventLink(){
     btn.textContent='✓ Copié !';
     setTimeout(()=>{btn.textContent=originalText;},2000);
   });
+}
+
+/* ================= configuration ================= */
+function configurerGitHub(){
+  const token=localStorage.getItem('github-token')||'';
+  const modal=$('modal');
+  $('modalMsg').textContent='Configuration du token GitHub';
+  $('modalExtra').innerHTML=`
+    <div style="text-align:left;margin:16px 0">
+      <p style="font-size:13px;color:var(--gris);margin:0 0 12px">
+        Un Personal Access Token avec permissions « repo » permet la publication automatique des pages d'événements.
+      </p>
+      <label style="display:block;margin-bottom:8px">Token (stocké localement uniquement)</label>
+      <input type="password" id="tokenInput" value="${token}" style="width:100%;padding:10px;border:1.5px solid #e6e1d4;border-radius:8px">
+      <p style="font-size:11px;color:var(--gris);margin:8px 0 0">
+        <a href="https://github.com/settings/tokens/new?scopes=repo&description=Bossa%20Nova%20Cafe" target="_blank" style="color:var(--vert)">Créer un token →</a>
+      </p>
+    </div>
+  `;
+  $('modalActs').innerHTML=`
+    <button class="btn or" onclick="sauvToken()">Enregistrer</button>
+    <button class="btn ghost" onclick="modal.classList.add('hidden')">Annuler</button>
+  `;
+  modal.classList.remove('hidden');
+}
+function sauvToken(){
+  const token=$('tokenInput').value.trim();
+  if(token) localStorage.setItem('github-token',token);
+  $('modal').classList.add('hidden');
+  info(token?'✅ Token enregistré.':'❌ Token supprimé.');
 }
 
 /* ================= gestion ================= */
@@ -855,6 +888,74 @@ function dupliquerSoiree(id){
   changerMode();
   $('aTitreForm').scrollIntoView({behavior:'smooth'});
 }
+/* ---- Génération auto de pages événements ---- */
+function genererPageEvenement(ev){
+  const a=s=>String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const nom=TYPES[ev.type||'music'].nom;
+  const dateAff=ev.mode==='periode'?`${ev.dateDebut} à ${ev.dateFin}`:dfull(ev.date,'fr');
+  const titre=`${nom} — ${ev.titre} · Bossa Nova Café`;
+  const desc=(ev.desc||`${dateAff}, ${ev.debut} – ${ev.fin}. Place de la Gare 3, 1800 Vevey. Réservation en ligne.`).replace(/\s+/g,' ').slice(0,300);
+  const img=imgUrl(ev.img);
+  const url=lienSite()+'?e='+ev.id;
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${a(titre)}</title>
+<meta property="og:title" content="${a(titre)}">
+<meta property="og:description" content="${a(desc)}">${img?`
+<meta property="og:image" content="${a(img)}">
+<meta property="og:image:width" content="800">
+<meta property="og:image:height" content="532">`:''}
+<meta property="og:url" content="${a(url)}">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta http-equiv="refresh" content="0; url=${a(url)}">
+</head>
+<body style="background:#FBF6EA;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:Poppins,system-ui,sans-serif;color:#123F2B">
+<div style="text-align:center;padding:20px"><p>Redirection vers la réservation…</p></div>
+<script>location.replace(${JSON.stringify(url)});<\/script>
+</body>
+</html>`;
+}
+
+async function pushPageGitHub(ev){
+  const token=localStorage.getItem('github-token');
+  if(!token){
+    console.warn('⚠️ Token GitHub non configuré — page générée localement uniquement');
+    return false;
+  }
+  const owner='Bossa-Nova-Cafe', repo='bossa-nova-reservations';
+  const filename=`event-${ev.id}.html`;
+  const content=genererPageEvenement(ev);
+  const message=`Auto-générer la page de partage pour "${ev.titre}"`;
+
+  try{
+    const encodedContent=btoa(unescape(encodeURIComponent(content)));
+    const resp=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filename}`,{
+      method:'PUT',
+      headers:{'Authorization':`token ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        message,
+        content:encodedContent,
+        committer:{name:'Bossa Nova Café',email:'reservations@bossanova.cafe'}
+      })
+    });
+    if(!resp.ok){
+      const err=await resp.json();
+      console.error('❌ Erreur GitHub:', err);
+      return false;
+    }
+    console.log('✅ Page pushée sur GitHub:', filename);
+    return true;
+  }catch(e){
+    console.error('❌ Erreur push GitHub:', e);
+    return false;
+  }
+}
+
 async function creerSoiree(){
   console.log('🟢 creerSoiree() lancée');
   const type=$('aType').value, titre=$('aTitre').value.trim(), mode=$('aMode').value, debut=$('aDebut').value, fin=$('aFin').value;
@@ -904,10 +1005,13 @@ async function creerSoiree(){
       }
       console.log('📝 Mise à jour de l\'événement:', enEdition);
       await EV.doc(enEdition).update(data);
+      await pushPageGitHub(events.find(e=>e.id===enEdition));
     } else {
       data.ferme=false; data.paxByDate={}; data.suspensions=[];
       console.log('➕ Création d\'un nouvel événement');
-      await EV.add(data);
+      const docRef=await EV.add(data);
+      const newEv=await docRef.get().then(s=>({...s.data(),id:s.id}));
+      await pushPageGitHub(newEv);
     }
     console.log('🎉 Événement enregistré avec succès!');
   }
