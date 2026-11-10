@@ -472,7 +472,8 @@ function dmois(d){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LO
 function pax(ev){
   // Calcul total des personnes réservées (toutes dates confondues)
   const paxByDate=ev.paxByDate||{};
-  return Object.values(paxByDate).reduce((sum,v)=>sum+v,0);
+  const total=Object.values(paxByDate).reduce((sum,v)=>sum+v,0);
+  return total || (ev.pax||0); // Fallback pour mode unique ou anciennes données
 }
 function resteParDate(ev,date){
   // Places libres pour une date spécifique
