@@ -851,7 +851,8 @@ function renderAdm(){
             const libreThisDate=ev.cap-paxThisDate;
             const full=libreThisDate<ev.min;
             const pctThisDate=Math.min(100,paxThisDate/ev.cap*100);
-            const dateLabel=new Date(d+'T12:00').getDate();
+            const dateObj=new Date(d+'T12:00');
+            const dateLabel=dateObj.getDate() + ' ' + dateObj.toLocaleDateString('fr-FR', {weekday: 'short'});
             return `<div style="padding:8px;background:#fff;border-radius:6px;border:1px solid #e6e1d4;font-size:12px">
               <div style="font-weight:500">${dateLabel}</div>
               <div style="color:var(--gris);font-size:11px">${paxThisDate}/${ev.cap}</div>
