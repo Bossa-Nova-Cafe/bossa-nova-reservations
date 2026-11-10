@@ -928,10 +928,15 @@ async function pushPageGitHub(ev){
   const message=`Auto-générer la page de partage pour "${ev.titre}"`;
 
   try{
-    const encodedContent=btoa(unescape(encodeURIComponent(content)));
+    // Encoder le contenu en base64 de manière fiable
+    const encodedContent=btoa(new TextEncoder().encode(content).reduce((a,b)=>a+String.fromCharCode(b),''));
     const resp=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filename}`,{
       method:'PUT',
-      headers:{'Authorization':`token ${token}`,'Content-Type':'application/json'},
+      headers:{
+        'Accept':'application/vnd.github.v3+json',
+        'Authorization':`token ${token}`,
+        'Content-Type':'application/json'
+      },
       body:JSON.stringify({
         message,
         content:encodedContent,
@@ -940,7 +945,7 @@ async function pushPageGitHub(ev){
     });
     if(!resp.ok){
       const err=await resp.json();
-      console.error('❌ Erreur GitHub:', err);
+      console.error('❌ Erreur GitHub ('+resp.status+'):', err);
       return false;
     }
     console.log('✅ Page pushée sur GitHub:', filename);
