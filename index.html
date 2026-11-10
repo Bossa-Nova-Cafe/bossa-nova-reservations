@@ -1000,7 +1000,9 @@ async function creerSoiree(){
       }
       console.log('📝 Mise à jour de l\'événement:', enEdition);
       await EV.doc(enEdition).update(data);
-      await pushPageGitHub(events.find(e=>e.id===enEdition));
+      // Construire l'objet complet pour le push (données mises à jour + anciens champs)
+      const updatedEv={...ev, ...data, id:enEdition, pax:pax(ev), cap:ev.cap};
+      await pushPageGitHub(updatedEv);
     } else {
       data.ferme=false; data.paxByDate={}; data.suspensions=[];
       console.log('➕ Création d\'un nouvel événement');
