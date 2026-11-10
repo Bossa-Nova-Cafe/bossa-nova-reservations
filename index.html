@@ -206,11 +206,9 @@
     </div>
     <label id="t_note"></label><textarea id="fNote" rows="2"></textarea>
     <div class="err" id="fErr"></div>
-    <button class="btn or" id="t_valider" onclick="reserver()"></button>
-
-    <div style="display: flex; gap: 12px; margin-top: 16px;">
-      <button onclick="shareFormEventLink()" style="flex: 1; background: #25D366; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">📱 Partager l'événement</button>
-      <button onclick="copyFormEventLink()" style="flex: 1; background: var(--or); color: var(--vert); padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">📋 Copier le lien</button>
+    <div style="display: flex; gap: 12px;">
+      <button class="btn or" id="t_valider" onclick="reserver()" style="flex:1"></button>
+      <button class="btn wa" onclick="shareFormEventLink()" style="flex:1;background:#25D366;padding:13px" title="Partager cet événement sur WhatsApp">📱</button>
     </div>
   </div>
   <div id="okCard" class="card hidden"><div class="ok" id="okMsg"></div>
@@ -219,13 +217,10 @@
       <button class="btn wa" id="t_inviter" onclick="inviter()"></button>
     </div>
     <a href="#" class="ics" id="t_ics" onclick="icsFile();return false"></a>
-
-    <div style="display: flex; gap: 12px; margin-top: 16px;">
-      <button onclick="shareEventLink()" style="flex: 1; background: #25D366; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">📱 Partager sur WhatsApp</button>
-      <button onclick="copyEventLink()" style="flex: 1; background: var(--or); color: var(--vert); padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px;">📋 Copier le lien</button>
-    </div>
-
-    <button class="btn ghost" id="t_nouvelle" onclick="go('pub')"></button></div>
+    <div style="display: flex; gap: 6px; margin-top: 12px;">
+      <button class="btn ghost" id="t_nouvelle" onclick="go('pub')" style="flex:1"></button>
+      <button class="btn wa" onclick="shareEventLink()" style="flex:0;padding:13px;min-width:44px" title="Partager cet événement">📱</button>
+    </div></div>
 </section>
 
 <section id="adm" class="hidden">
