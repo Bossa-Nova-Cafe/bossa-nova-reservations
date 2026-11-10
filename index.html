@@ -98,6 +98,13 @@
   h3.passes{font-size:13px;letter-spacing:.14em;color:var(--gris);margin:26px 0 -6px;padding-top:18px;border-top:2px solid #e6e1d4}
   .chip{display:inline-block;background:#F3EEF9;color:var(--violet);padding:2px 8px;border-radius:6px;font-size:12px;font-weight:500;margin:2px 2px 0 0}
   .flag{display:inline-block;background:#f0ece1;color:var(--gris);font-size:11px;font-weight:600;padding:1px 6px;border-radius:5px;margin-left:6px}
+  #brasilDishes{display:none;margin:20px 0;padding:18px;background:#F9F5F0;border-radius:12px;border-left:4px solid var(--or)}
+  #brasilDishes.show{display:block}
+  .dish-card{background:white;padding:14px;border-radius:10px;margin-bottom:12px;border-left:3px solid var(--rouge)}
+  .dish-card:last-child{margin-bottom:0}
+  .dish-name{font-weight:600;color:var(--vert);font-size:14px;margin-bottom:4px}
+  .dish-desc{font-size:13px;color:var(--gris);margin-bottom:6px}
+  .dish-price{font-weight:600;color:var(--or);font-size:15px}
   .hidden{display:none}
   .modal{position:fixed;inset:0;background:rgba(11,42,29,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:99}
   .modal.hidden{display:none}
@@ -174,6 +181,7 @@
     <h2 id="formTitle"></h2>
     <p class="note" id="formMeta"></p>
     <p id="formDesc"></p>
+    <div id="brasilDishes"></div>
     <button class="btn wa sm" id="t_inviter2" onclick="inviterAvant()" style="margin-top:14px"></button>
     <div id="datePickDiv" class="hidden">
       <label>Choisir une date</label>
@@ -555,6 +563,30 @@ function choisir(id){
   else im.classList.add('hidden');
   $('formDesc').textContent=ev.desc||'';
   $('formTitle').textContent=ev.titre;
+  // Afficher les plats pour "brasil"
+  const dishDiv=$('brasilDishes');
+  if(ev.type==='brasil'){
+    dishDiv.innerHTML=`
+      <div class="dish-card">
+        <div class="dish-name">🥘 Carne Esfiada à Mineira</div>
+        <div class="dish-desc">Effiloché de bœuf braisé à la mineira, poivrons, oignons et tomates</div>
+        <div class="dish-price">CHF 20.00 / personne</div>
+      </div>
+      <div class="dish-card">
+        <div class="dish-name">🫘 Feijoada Complète</div>
+        <div class="dish-desc">Haricots noirs mijotés aux viandes, chou vert et orange</div>
+        <div class="dish-price">CHF 20.50 / personne</div>
+      </div>
+      <div class="dish-card">
+        <div class="dish-name">🍗 Estrogonoff au Poulet</div>
+        <div class="dish-desc">Poulet mijoté en sauce crémeuse aux champignons et paprika, garni de batatas palha croustillantes</div>
+        <div class="dish-price">CHF 18.00 / personne</div>
+      </div>
+    `;
+    dishDiv.classList.add('show');
+  } else {
+    dishDiv.classList.remove('show');
+  }
   if(ev.mode==='periode'){
     const dates=genererDates(ev.dateDebut,ev.dateFin,ev.jours);
     const suspensions=ev.suspensions||[];
