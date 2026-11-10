@@ -177,6 +177,7 @@
 </div></header>
 
 <main>
+<script src="./nav-admin.js" data-page="reservations"></script>
 <section id="pub">
   <div class="card">
     <h2 id="t_choisir"></h2>
@@ -208,7 +209,6 @@
     <div class="err" id="fErr"></div>
     <div style="display: flex; gap: 12px;">
       <button class="btn or" id="t_valider" onclick="reserver()" style="flex:1"></button>
-      <button class="btn wa" onclick="shareFormEventLink()" style="flex:1;background:#25D366;padding:13px" title="Partager cet événement sur WhatsApp">📱</button>
     </div>
   </div>
   <div id="okCard" class="card hidden"><div class="ok" id="okMsg"></div>
@@ -219,7 +219,6 @@
     <a href="#" class="ics" id="t_ics" onclick="icsFile();return false"></a>
     <div style="display: flex; gap: 6px; margin-top: 12px;">
       <button class="btn ghost" id="t_nouvelle" onclick="go('pub')" style="flex:1"></button>
-      <button class="btn wa" onclick="shareEventLink()" style="flex:0;padding:13px;min-width:44px" title="Partager cet événement">📱</button>
     </div></div>
 </section>
 
@@ -235,7 +234,6 @@
     <button class="btn" onclick="login()">Se connecter</button>
   </div>
   <div id="admContent" class="hidden">
-  <script src="../soirees/nav-admin.js" data-page="reservations"></script>
   <div style="text-align:right;margin-bottom:10px"><span class="note" id="whoami"></span>
     <button class="btn sm ghost" onclick="configurerGitHub()">🔑 Token GitHub</button>
     <button class="btn sm ghost" onclick="auth.signOut()">Déconnexion</button></div>
@@ -669,7 +667,7 @@ async function reserver(){
 
 /* ---- agenda et invitation, après confirmation ---- */
 const ADRESSE='Bossa Nova Café, Place de la Gare 3, 1800 Vevey';
-function lienSite(){return location.origin+location.pathname;}
+function lienSite(){return location.origin+location.pathname.replace(/[^/]*$/,'');}
 function horodate(date,h){return date.replace(/-/g,'')+'T'+h.replace(':','')+'00';}
 function titreEv(d){return `${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre} · Bossa Nova Café`;}
 function detailEv(d){return `${t('okTitre')(d.code)} · ${t('pers')(d.n)} · ${t('arrivee')} ${d.slot}`;}
@@ -891,7 +889,7 @@ function genererPageEvenement(ev){
   const titre=`${nom} — ${ev.titre} · Bossa Nova Café`;
   const desc=(ev.desc||`${dateAff}, ${ev.debut} – ${ev.fin}. Place de la Gare 3, 1800 Vevey. Réservation en ligne.`).replace(/\s+/g,' ').slice(0,300);
   const img=imgUrl(ev.img);
-  const url=lienSite()+'?e='+ev.id;
+  const url=lienSite()+'event-'+ev.id+'.html';
 
   return `<!DOCTYPE html>
 <html lang="fr">
