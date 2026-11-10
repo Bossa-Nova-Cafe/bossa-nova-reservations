@@ -453,8 +453,27 @@ const TYPES={
 const today=()=>new Date().toLocaleDateString('sv-SE');
 function dfull(d,l){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[l||lang],{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(x);}
 function dmois(d){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[lang],{month:'short'}).format(x)+' '+x.getFullYear();}
-function pax(ev){return ev.pax||0;}
-function reste(ev){return ev.cap-pax(ev);}
+function pax(ev){
+  // Calcul total des personnes réservées (toutes dates confondues)
+  const paxByDate=ev.paxByDate||{};
+  return Object.values(paxByDate).reduce((sum,v)=>sum+v,0);
+}
+function resteParDate(ev,date){
+  // Places libres pour une date spécifique
+  const paxByDate=ev.paxByDate||{};
+  const paxThisDate=paxByDate[date]||0;
+  return ev.cap-paxThisDate;
+}
+function reste(ev){
+  // Ancienne fonction : places libres minimales sur toutes les dates
+  // (pour la jauge globale, on montre le minimum disponible)
+  const paxByDate=ev.paxByDate||{};
+  let minReste=ev.cap;
+  Object.entries(paxByDate).forEach(([d,p])=>{
+    minReste=Math.min(minReste,ev.cap-p);
+  });
+  return minReste;
+}
 function genererDates(dateDebut,dateFin,jours){
   const d=new Date(dateDebut+'T12:00'), fin=new Date(dateFin+'T12:00');
   const dates=[];
@@ -549,16 +568,23 @@ async function reserver(){
   if(err){$('fErr').textContent=err;return;}
   const code='BN-'+Math.random().toString(36).slice(2,6).toUpperCase();
   const evRef=EV.doc(ev.id), langue=lang;
+  const dateRes=selDate||ev.date; // Date pour laquelle on réserve
   try{
     await db.runTransaction(async tr=>{
       const snap=await tr.get(evRef), d=snap.data();
       if(!d||d.ferme) throw new Error(t('Ferme'));
       if(n<d.min) throw new Error(t('eMin')(d.min));
-      const libre=d.cap-(d.pax||0);
+      // Vérifier la capacité pour cette date spécifique
+      const paxByDate=d.paxByDate||{};
+      const paxThisDate=paxByDate[dateRes]||0;
+      const libre=d.cap-paxThisDate;
       if(n>libre) throw new Error(libre<d.min?t('Complet'):t('ePlaces')(libre));
-      tr.update(evRef,{pax:(d.pax||0)+n});
+      // Incrémenter paxByDate pour cette date
+      const newPaxByDate={...paxByDate, [dateRes]:(paxByDate[dateRes]||0)+n};
+      tr.update(evRef,{paxByDate:newPaxByDate});
       const resaData={ev:ev.id,code,nom,tel,mail,pax:n,slot:selSlot,note:$('fNote').value.trim(),lang:langue,ts:new Date().toISOString()};
       if(ev.mode==='periode') resaData.date=selDate;
+      else resaData.date=ev.date;
       tr.set(RS.doc(),resaData);
     });
   }catch(e){ $('fErr').textContent=e.message||'Réservation impossible, réessayez.'; return; }
@@ -748,15 +774,16 @@ async function creerSoiree(){
     console.log('En édition?', !!enEdition);
     if(enEdition){
       const ev=events.find(e=>e.id===enEdition);
-      if(cap<(ev?ev.pax||0:0)) {
+      const totalPax=pax(ev);
+      if(cap<totalPax) {
         console.error('Capacité insuffisante');
-        $('aErr').textContent=`Capacité inférieure aux ${ev.pax} personnes déjà réservées.`;
+        $('aErr').textContent=`Capacité inférieure aux ${totalPax} personnes déjà réservées.`;
         return;
       }
       console.log('📝 Mise à jour de l\'événement:', enEdition);
       await EV.doc(enEdition).update(data);
     } else {
-      data.ferme=false; data.pax=0; data.suspensions=[];
+      data.ferme=false; data.paxByDate={}; data.suspensions=[];
       console.log('➕ Création d\'un nouvel événement');
       await EV.add(data);
     }
@@ -798,7 +825,25 @@ function renderAdm(){
           <button class="btn sm ghost" onclick="exporter('${ev.id}')">Copier la liste</button>
           <button class="btn sm danger" onclick="supprSoiree('${ev.id}')">Supprimer</button></div>
       </div>
-      <div class="stat"><div><b>${p}</b><span>personnes</span></div><div><b>${rs.length}</b><span>réservations</span></div><div><b>${ev.cap-p}</b><span>places libres</span></div></div>
+      <div class="stat"><div><b>${p}</b><span>personnes</span></div><div><b>${rs.length}</b><span>réservations</span></div></div>
+      ${ev.mode==='periode'?`<div style="margin-top:10px;padding:10px;background:#f9f7f4;border-radius:8px;font-size:13px">
+        <div style="font-weight:600;margin-bottom:8px">Places par date :</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:6px">
+          ${genererDates(ev.dateDebut,ev.dateFin,ev.jours).map(d=>{
+            const paxByDate=ev.paxByDate||{};
+            const paxThisDate=paxByDate[d]||0;
+            const libreThisDate=ev.cap-paxThisDate;
+            const full=libreThisDate<ev.min;
+            const pctThisDate=Math.min(100,paxThisDate/ev.cap*100);
+            const dateLabel=new Date(d+'T12:00').getDate();
+            return `<div style="padding:8px;background:#fff;border-radius:6px;border:1px solid #e6e1d4;font-size:12px">
+              <div style="font-weight:500">${dateLabel}</div>
+              <div style="color:var(--gris);font-size:11px">${paxThisDate}/${ev.cap}</div>
+              <div class="jauge" style="margin-top:4px"><i class="${full?'full':''}" style="width:${pctThisDate}%"></i></div>
+              </div>`;
+          }).join('')}
+        </div>
+      </div>`:``}
       ${ev.mode==='periode'?`<div style="margin-top:14px;padding:14px;background:#f9f7f4;border-radius:10px">
         <div style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--gris);margin-bottom:10px">Gestion des dates</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
@@ -833,8 +878,13 @@ async function supprSoiree(id){
 async function supprResa(id){
   if(!await ask('Annuler cette réservation ? La place sera de nouveau disponible.','Annuler la réservation'))return;
   const r=resas.find(x=>x.id===id); if(!r) return;
+  const ev=events.find(e=>e.id===r.ev); if(!ev) return;
   const b=db.batch(); b.delete(RS.doc(id));
-  b.update(EV.doc(r.ev),{pax:firebase.firestore.FieldValue.increment(-r.pax)}); await b.commit();
+  // Décrémenter paxByDate pour la date de la réservation
+  const dateRes=r.date||ev.date;
+  const paxByDate=ev.paxByDate||{};
+  const newPaxByDate={...paxByDate, [dateRes]:Math.max(0,(paxByDate[dateRes]||0)-r.pax)};
+  b.update(EV.doc(r.ev),{paxByDate:newPaxByDate}); await b.commit();
 }
 
 /* ---- WhatsApp ---- */
