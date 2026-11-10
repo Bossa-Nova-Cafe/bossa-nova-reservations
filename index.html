@@ -74,7 +74,8 @@
   .btn.wa:hover{background:#1EBE5B}
   .btn.wa[disabled]{background:#e6e1d4;color:var(--gris);cursor:not-allowed}
   .slots{display:flex;gap:8px;flex-wrap:wrap}
-  .slot{padding:9px 16px;border:1.5px solid #e6e1d4;border-radius:999px;cursor:pointer;font-weight:500;font-size:14px;background:#fff}
+  .slot{padding:9px 16px;border:1.5px solid #e6e1d4;border-radius:999px;cursor:pointer;font-weight:500;font-size:14px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:60px}
+  .slot-day{font-size:11px;color:var(--gris);font-weight:400;text-transform:uppercase;letter-spacing:.08em}
   .slot.sel{background:var(--violet);color:#fff;border-color:var(--violet)}
   .note{font-size:13px;color:var(--gris);margin-top:6px}
   .okActs{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
@@ -478,6 +479,7 @@ const TYPES={
 const today=()=>new Date().toLocaleDateString('sv-SE');
 function dfull(d,l){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[l||lang],{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(x);}
 function dmois(d){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[lang],{month:'short'}).format(x)+' '+x.getFullYear();}
+function djour(d){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[lang],{weekday:'short'}).format(x).slice(0,3);}
 function pax(ev){
   // Calcul total des personnes réservées (toutes dates confondues)
   const paxByDate=ev.paxByDate||{};
@@ -593,7 +595,7 @@ function choisir(id){
     $('datePickDiv').classList.remove('hidden');
     $('datePick').innerHTML=dates.map(d=>{
       const susp=suspensions.includes(d);
-      return `<span class="slot ${susp?'ferme':''}" data-date="${esc(d)}" onclick="${susp?'':'pickDateEv(this)'}" style="${susp?'opacity:0.5;cursor:not-allowed':''}">${new Date(d+'T12:00').getDate()}</span>`;
+      return `<span class="slot ${susp?'ferme':''}" data-date="${esc(d)}" onclick="${susp?'':'pickDateEv(this)'}" style="${susp?'opacity:0.5;cursor:not-allowed':''}">${new Date(d+'T12:00').getDate()}<span class="slot-day">${djour(d)}</span></span>`;
     }).join('');
     $('formMeta').textContent=`${new Date(ev.dateDebut+'T12:00').getDate()}-${new Date(ev.dateFin+'T12:00').getDate()} ${dmois(ev.dateDebut)} · ${ev.debut} – ${ev.fin} · ${t('restantes')(reste(ev))}`;
   } else {
