@@ -50,6 +50,7 @@
   .type.saturday{background:#F3EEF9;color:#5B2C83}
   .type.football{background:#FDF3D6;color:#8A6100}
   .type.pizza{background:#FFE4CC;color:#CC5500}
+  .type.brasil{background:#E8F5E9;color:#1B5E20}
   .type.special{background:#E2EEF4;color:#1F5A78}
   .type.theme{background:#FCE4EC;color:#A3214F}
   .jauge{height:6px;background:#eee8d9;border-radius:3px;margin-top:10px;overflow:hidden}
@@ -234,7 +235,7 @@
   <div class="card">
     <h2 id="aTitreForm">Nouvel événement</h2>
     <div class="row">
-      <div><label>Type d'événement</label><select id="aType" onchange="preremplir()"><option value="culture">Culture</option><option value="brasil">Brasil</option><option value="saturday">Saturday Pub</option><option value="football">Football</option><option value="pizza">Pizza a Gogo</option><option value="feijoada">Feijoada</option><option value="theme">Soirée à thème</option><option value="special">Événement Spécial</option><option value="music">Music Night (legacy)</option><option value="match">Match Night (legacy)</option></select></div>
+      <div><label>Type d'événement</label><select id="aType" onchange="preremplir()"><option value="culture">Culture</option><option value="brasil">Saveurs du Brésil Traditionnel</option><option value="saturday">Saturday Pub</option><option value="football">Football</option><option value="pizza">Pizza a Gogo</option><option value="feijoada">Feijoada</option><option value="theme">Soirée à thème</option><option value="special">Événement Spécial</option><option value="music">Music Night (legacy)</option><option value="match">Match Night (legacy)</option></select></div>
       <div><label>Titre</label><input id="aTitre" placeholder="Ex. Samba de roda avec …"></div>
     </div>
     <div class="row">
@@ -456,7 +457,7 @@ function info(msg,texte,actions,lien){
 /* ================= utilitaires ================= */
 const TYPES={
   culture:{nom:'Culture',titre:'Ex. Lancement de livre — …',debut:'18:30',fin:'21:00',slots:'18:00, 18:30, 19:00',min:1},
-  brasil:{nom:'Brasil',titre:'Ex. Samba de roda avec …',debut:'20:00',fin:'23:00',slots:'19:30, 20:00, 20:30',min:2},
+  brasil:{nom:'Saveurs du Brésil Traditionnel',titre:'Ex. Feijoada, Carne Maluca & Estrogonoff',debut:'12:00',fin:'21:00',slots:'11:30, 12:00, 12:30, 13:00, 18:30, 19:00, 19:30, 20:00, 20:30, 21:00',min:2},
   saturday:{nom:'Saturday Pub',titre:'Ex. 90s Night',debut:'20:00',fin:'23:00',slots:'19:30, 20:00, 20:30',min:2},
   football:{nom:'Football',titre:'Ex. Brésil – Argentine',debut:'20:00',fin:'23:00',slots:'19:00, 19:30, 20:00',min:2},
   pizza:{nom:'Pizza a Gogo',titre:'Ex. Pizza du samedi',debut:'18:30',fin:'21:00',slots:'18:30, 19:00, 19:30, 20:00, 20:30, 21:00',min:2},
