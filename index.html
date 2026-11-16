@@ -501,6 +501,16 @@ const TYPES={
 const today=()=>new Date().toLocaleDateString('sv-SE');
 function dfull(d,l){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[l||lang],{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(x);}
 function dmois(d){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[lang],{month:'short'}).format(x)+' '+x.getFullYear();}
+/* Période lisible. Le mois de fin doit apparaître dès que la période change
+   de mois : « 20-23 nov. 2026 » pour une période qui va jusqu'au 23 décembre
+   ferait croire que l'événement s'arrête une semaine plus tard. */
+function dperiode(dateDebut,dateFin){
+  const a=new Date(dateDebut+'T12:00'), b=new Date(dateFin+'T12:00');
+  const m=x=>new Intl.DateTimeFormat(LOC[lang],{month:'short'}).format(x);
+  if(a.getFullYear()!==b.getFullYear()) return `${a.getDate()} ${m(a)} ${a.getFullYear()} – ${b.getDate()} ${m(b)} ${b.getFullYear()}`;
+  if(a.getMonth()!==b.getMonth()) return `${a.getDate()} ${m(a)} – ${b.getDate()} ${m(b)} ${b.getFullYear()}`;
+  return `${a.getDate()}-${b.getDate()} ${m(a)} ${b.getFullYear()}`;
+}
 function djour(d){const x=new Date(d+'T12:00');return new Intl.DateTimeFormat(LOC[lang],{weekday:'short'}).format(x).slice(0,3);}
 function pax(ev){
   // Calcul total des personnes réservées (toutes dates confondues)
@@ -568,7 +578,7 @@ function render(){
     const dateAffiche=ev.mode==='periode'?ev.dateDebut:ev.date;
     const x=new Date(dateAffiche+'T12:00'), r=reste(ev), full=r<ev.min, pct=Math.min(100,pax(ev)/ev.cap*100);
     const badge=ev.ferme?`<span class="badge ferme">${t('Ferme')}</span>`:full?`<span class="badge">${t('Complet')}</span>`:'';
-    const infoDate=ev.mode==='periode'?`${x.getDate()}-${new Date(ev.dateFin+'T12:00').getDate()} ${dmois(ev.dateDebut)}`:`<div class="date">${x.getDate()}</div><div class="mois">${dmois(ev.date)}</div>`;
+    const infoDate=ev.mode==='periode'?dperiode(ev.dateDebut,ev.dateFin):`<div class="date">${x.getDate()}</div><div class="mois">${dmois(ev.date)}</div>`;
     return `<div class="evt ${selEv&&selEv.id===ev.id?'sel':''}" onclick="choisir('${ev.id}')">${badge}
       ${ev.img?`<img class="vignette" src="${esc(imgUrl(ev.img))}" alt="" loading="lazy" onerror="this.remove()">`:''}
       <div class="type ${ev.type||'music'}">${TYPES[ev.type||'music'].nom}</div>
@@ -620,7 +630,7 @@ function choisir(id){
       const susp=suspensions.includes(d);
       return `<span class="slot ${susp?'ferme':''}" data-date="${esc(d)}" onclick="${susp?'':'pickDateEv(this)'}" style="${susp?'opacity:0.5;cursor:not-allowed':''}">${new Date(d+'T12:00').getDate()}<span class="slot-day">${djour(d)}</span></span>`;
     }).join('');
-    $('formMeta').textContent=`${new Date(ev.dateDebut+'T12:00').getDate()}-${new Date(ev.dateFin+'T12:00').getDate()} ${dmois(ev.dateDebut)} · ${ev.debut} – ${ev.fin} · ${t('restantes')(reste(ev))}`;
+    $('formMeta').textContent=`${dperiode(ev.dateDebut,ev.dateFin)} · ${ev.debut} – ${ev.fin} · ${t('restantes')(reste(ev))}`;
   } else {
     $('datePickDiv').classList.add('hidden');
     $('formMeta').textContent=`${dfull(ev.date)} · ${ev.debut} – ${ev.fin} · ${t('restantes')(reste(ev))}`;
