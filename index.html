@@ -411,9 +411,20 @@ function setLang(l){
   render(); if(selEv) choisir(selEv.id);
 }
 
-/* ================= données temps réel ================= */
-EV.orderBy('date').onSnapshot(q=>{
-  events=q.docs.map(d=>({id:d.id,...d.data()}));
+/* ================= données temps réel =================
+   Pas de orderBy ici : une requête Firestore ordonnée sur un champ ne
+   renvoie QUE les documents qui possèdent ce champ. Avec orderBy('date'),
+   tout événement créé en mode « Avec période » — qui a dateDebut/dateFin
+   et non date — était enregistré en base mais jamais renvoyé, donc
+   invisible dans la liste publique comme dans l'espace gestion.
+   Le tri se fait côté navigateur, dans render() et renderAdm(), où il
+   tient déjà compte des deux modes. */
+EV.onSnapshot(q=>{
+  events=q.docs.map(d=>({id:d.id,...d.data()}))
+    // Un document sans date exploitable ne peut ni s'afficher ni se réserver,
+    // et ferait planter toute la liste au formatage de sa date. On l'écarte
+    // ici plutôt que de laisser la page entière tomber.
+    .filter(ev=>ev && (ev.mode==='periode' ? (ev.dateDebut && ev.dateFin) : !!ev.date));
   // Migration : recalculer paxByDate à partir des réservations
   events.forEach(ev=>{
     if(ev.mode==='periode' && (!ev.paxByDate || Object.keys(ev.paxByDate).length===0)){
@@ -548,8 +559,9 @@ function go(v){
 let cible=new URLSearchParams(location.search).get('e'), cibleFaite=false;
 function render(){
   const upcoming=events.filter(e=>!fini(e)).sort((a,b)=>{
-    const aDate=a.mode==='periode'?a.dateDebut:a.date;
-    const bDate=b.mode==='periode'?b.dateDebut:b.date;
+    // ||'' : un document incomplet ne doit pas faire planter toute la liste.
+    const aDate=(a.mode==='periode'?a.dateDebut:a.date)||'';
+    const bDate=(b.mode==='periode'?b.dateDebut:b.date)||'';
     return aDate.localeCompare(bDate);
   });
   $('pubList').innerHTML=upcoming.length?upcoming.map(ev=>{
@@ -1028,8 +1040,9 @@ function renderAdm(){
   const c=$('admList');
   if(!events.length){c.innerHTML='<div class="empty">Créez votre premier événement ci-dessus.</div>';return;}
   const tri=[...events].sort((a,b)=>{
-    const aDate=a.mode==='periode'?a.dateDebut:a.date;
-    const bDate=b.mode==='periode'?b.dateDebut:b.date;
+    // ||'' : un document incomplet ne doit pas faire planter l'espace gestion.
+    const aDate=(a.mode==='periode'?a.dateDebut:a.date)||'';
+    const bDate=(b.mode==='periode'?b.dateDebut:b.date)||'';
     return bDate.localeCompare(aDate);
   });
   const avenir=tri.filter(e=>!fini(e)), passes=tri.filter(e=>fini(e));
