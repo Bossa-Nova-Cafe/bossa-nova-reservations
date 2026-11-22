@@ -540,7 +540,7 @@ function reste(ev){
   const paxByDate=ev.paxByDate||{};
   if(ev.mode==='periode'){
     // Pour les périodes, on vérifie TOUTES les dates possibles
-    const dates=genererDates(ev.dateDebut,ev.dateFin,ev.jours);
+    const dates=genererDates(ev.dateDebut,ev.dateFin,ev.jours).filter(d=>dateOuverte(ev,d));
     let minReste=ev.cap;
     dates.forEach(d=>{
       minReste=Math.min(minReste,ev.cap-(paxByDate[d]||0));
@@ -551,6 +551,16 @@ function reste(ev){
     const pax=Object.values(paxByDate).reduce((a,b)=>a+b,0)||ev.pax||0;
     return ev.cap-pax;
   }
+}
+/* Une date encore réservable : à venir, ou aujourd'hui tant que la dernière
+   heure d'arrivée n'est pas passée. Les dates expirées ne sont plus montrées
+   aux clients, et ne comptent plus dans les places restantes. */
+function dateOuverte(ev,d){
+  const auj=today();
+  if(d>auj) return true;
+  if(d<auj) return false;
+  const derniere=(ev.slots||[]).slice().sort().pop()||ev.fin||'23:59';
+  return new Date(d+'T'+derniere)>new Date();
 }
 function genererDates(dateDebut,dateFin,jours){
   const d=new Date(dateDebut+'T12:00'), fin=new Date(dateFin+'T12:00');
@@ -634,10 +644,11 @@ function choisir(id){
     dishDiv.classList.remove('show');
   }
   if(ev.mode==='periode'){
-    const dates=genererDates(ev.dateDebut,ev.dateFin,ev.jours);
+    const dates=genererDates(ev.dateDebut,ev.dateFin,ev.jours).filter(d=>dateOuverte(ev,d));
     const suspensions=ev.suspensions||[];
     $('datePickDiv').classList.remove('hidden');
-    $('datePick').innerHTML=dates.map(d=>{
+    $('datePick').innerHTML=dates.length?'':`<span class="note">${esc(t('Ferme'))}</span>`;
+    $('datePick').innerHTML+=dates.map(d=>{
       const susp=suspensions.includes(d);
       return `<span class="slot ${susp?'ferme':''}" data-date="${esc(d)}" onclick="${susp?'':'pickDateEv(this)'}" style="${susp?'opacity:0.5;cursor:not-allowed':''}">${new Date(d+'T12:00').getDate()}<span class="slot-day">${djour(d)}</span></span>`;
     }).join('');
