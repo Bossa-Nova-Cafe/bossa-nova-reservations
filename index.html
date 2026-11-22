@@ -672,6 +672,11 @@ async function reserver(){
   const code='BN-'+Math.random().toString(36).slice(2,6).toUpperCase();
   const evRef=EV.doc(ev.id), langue=lang;
   const dateRes=selDate||ev.date; // Date pour laquelle on réserve
+  // La réservation reçoit son identifiant avant la transaction : la soirée
+  // garde celui de la dernière réservation (derniereResa), ce qui permet aux
+  // règles Firestore de vérifier que le compteur de cette date monte
+  // exactement du nombre de personnes réservées, et pas d'un autre.
+  const resaRef=RS.doc();
   try{
     await db.runTransaction(async tr=>{
       const snap=await tr.get(evRef), d=snap.data();
@@ -684,11 +689,11 @@ async function reserver(){
       if(n>libre) throw new Error(libre<d.min?t('Complet'):t('ePlaces')(libre));
       // Incrémenter paxByDate pour cette date
       const newPaxByDate={...paxByDate, [dateRes]:(paxByDate[dateRes]||0)+n};
-      tr.update(evRef,{paxByDate:newPaxByDate});
+      tr.update(evRef,{paxByDate:newPaxByDate,derniereResa:resaRef.id});
       const resaData={ev:ev.id,code,nom,tel,mail,pax:n,slot:selSlot,note:$('fNote').value.trim(),lang:langue,ts:new Date().toISOString()};
       if(ev.mode==='periode') resaData.date=selDate;
       else resaData.date=ev.date;
-      tr.set(RS.doc(),resaData);
+      tr.set(resaRef,resaData);
     });
   }catch(e){ $('fErr').textContent=e.message||'Réservation impossible, réessayez.'; return; }
   derniere={ev,n,code,slot:selSlot,date:selDate};
