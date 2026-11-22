@@ -20,18 +20,35 @@ service cloud.firestore {
 
     // Soirées : lecture publique (le site doit les afficher sans connexion).
     // Écriture réservée à l'équipe, sauf le compteur de places qui monte lors d'une réservation.
+    // Depuis le 10 novembre, la page de réservation compte les places date par date (paxByDate).
+    // Un client peut faire monter le compteur d'UNE date, du nombre exact de personnes de la
+    // réservation créée dans la même transaction (derniereResa), sans dépasser la capacité.
     match /soirees/{id} {
+      function compteurDeLaReservation() {
+        let r = getAfter(/databases/$(database)/documents/reservations/$(request.resource.data.derniereResa)).data;
+        let avant = resource.data.get('paxByDate', {});
+        let apres = request.resource.data.paxByDate;
+        return r.ev == id
+          && r.date is string
+          && apres.diff(avant).affectedKeys().hasOnly([r.date])
+          && apres[r.date] == avant.get(r.date, 0) + r.pax
+          && apres[r.date] <= resource.data.cap;
+      }
       allow read: if true;
       allow create, delete: if admin();
       allow update: if admin()
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pax'])
             && request.resource.data.pax > resource.data.pax
             && request.resource.data.pax <= resource.data.cap
-            && resource.data.ferme == false);
+            && resource.data.ferme == false)
+        || (resource.data.ferme == false
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paxByDate', 'derniereResa'])
+            && request.resource.data.derniereResa is string
+            && compteurDeLaReservation());
     }
 
     // Réservations : création publique mais validée ; noms et contacts illisibles sans connexion.
-    match /reservations/{id} {
+    match /reservations/{resaId} {
       allow read, update, delete: if admin();
       allow create: if
         request.resource.data.keys().hasAll(['ev','nom','pax','slot','code','ts'])
@@ -42,7 +59,11 @@ service cloud.firestore {
         && request.resource.data.pax >= soiree(request.resource.data.ev).min
         && request.resource.data.pax <= 12
         && request.resource.data.slot in soiree(request.resource.data.ev).slots
-        && soiree(request.resource.data.ev).ferme == false;
+        && soiree(request.resource.data.ev).ferme == false
+        // La date réservée, et le compteur de la soirée qui la compte dans la même transaction.
+        && request.resource.data.date is string
+        && request.resource.data.date.size() == 10
+        && getAfter(/databases/$(database)/documents/soirees/$(request.resource.data.ev)).data.get('derniereResa', '') == resaId;
     }
 
     // Festa : catalogue lisible par tous, modifiable par l'équipe
@@ -68,6 +89,11 @@ service cloud.firestore {
     match /parametres/goatcounter {
       allow read: if admin();
       allow write: if manager();
+    }
+
+    // Soirées à remplir : questions et coches des alertes, partagées par l'équipe
+    match /parametres/alertes-soirees {
+      allow read, write: if admin();
     }
 
     // Stock du café : réservé à l'équipe
