@@ -362,13 +362,22 @@ Object.keys(T2).forEach(l=>Object.assign(T[l],T2[l]));
 
 /* invitation envoyée AVANT de réserver, pour sonder ses amis */
 function lienEvt(ev){return lienSite()+'?e='+ev.id;}
+/* La date d'une soirée, telle qu'on l'écrit dans un message. Une soirée
+   « période » n'a pas de champ date (ou en garde un ancien) : on écrit la date
+   choisie si on la connaît, sinon la période. Sans cela, le formatage d'une
+   date absente plantait le bouton, sans rien afficher. */
+function quandEv(ev,l,date){
+  if(date) return dfull(date,l);
+  if(ev.mode==='periode'&&ev.dateDebut&&ev.dateFin) return dperiode(ev.dateDebut,ev.dateFin);
+  return ev.date?dfull(ev.date,l):'';
+}
 const INV0={
- fr:ev=>`On va au Bossa Nova Café ?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nRéserve ta place ici : ${lienEvt(ev)}`,
- en:ev=>`Fancy Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nBook your seat here: ${lienEvt(ev)}`,
- de:ev=>`Lust auf das Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nHier reservieren: ${lienEvt(ev)}`,
- pt:ev=>`Bora no Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nReserve seu lugar aqui: ${lienEvt(ev)}`,
- es:ev=>`¿Vamos al Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nReserva tu plaza aquí: ${lienEvt(ev)}`,
- it:ev=>`Andiamo al Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nPrenota il tuo posto qui: ${lienEvt(ev)}`
+ fr:ev=>`On va au Bossa Nova Café ?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,null,ev===selEv?selDate:null)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nRéserve ta place ici : ${lienEvt(ev)}`,
+ en:ev=>`Fancy Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,null,ev===selEv?selDate:null)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nBook your seat here: ${lienEvt(ev)}`,
+ de:ev=>`Lust auf das Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,null,ev===selEv?selDate:null)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nHier reservieren: ${lienEvt(ev)}`,
+ pt:ev=>`Bora no Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,null,ev===selEv?selDate:null)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nReserve seu lugar aqui: ${lienEvt(ev)}`,
+ es:ev=>`¿Vamos al Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,null,ev===selEv?selDate:null)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nReserva tu plaza aquí: ${lienEvt(ev)}`,
+ it:ev=>`Andiamo al Bossa Nova Café?\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,null,ev===selEv?selDate:null)}, ${ev.debut} – ${ev.fin}\nPlace de la Gare 3, 1800 Vevey\n\nPrenota il tuo posto qui: ${lienEvt(ev)}`
 };
 function inviterAvant(){
   if(!selEv) return;
@@ -378,22 +387,22 @@ const t=k=>T[lang][k];
 
 /* invitations envoyées par le client à ses amis */
 const INV={
- fr:d=>`Je vais au Bossa Nova Café !\n${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre}\n${dfull(d.ev.date)}, dès ${d.slot}\nPlace de la Gare 3, 1800 Vevey\n\nTu viens ? Réserve ta table ici : ${lienSite()}`,
- en:d=>`I'm going to Bossa Nova Café!\n${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre}\n${dfull(d.ev.date)}, from ${d.slot}\nPlace de la Gare 3, 1800 Vevey\n\nJoin me — book your table here: ${lienSite()}`,
- de:d=>`Ich gehe ins Bossa Nova Café!\n${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre}\n${dfull(d.ev.date)}, ab ${d.slot}\nPlace de la Gare 3, 1800 Vevey\n\nKommst du mit? Hier reservieren: ${lienSite()}`,
- pt:d=>`Vou ao Bossa Nova Café!\n${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre}\n${dfull(d.ev.date)}, a partir das ${d.slot}\nPlace de la Gare 3, 1800 Vevey\n\nVem também! Reserve aqui: ${lienSite()}`,
- es:d=>`¡Voy al Bossa Nova Café!\n${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre}\n${dfull(d.ev.date)}, desde las ${d.slot}\nPlace de la Gare 3, 1800 Vevey\n\n¿Te apuntas? Reserva aquí: ${lienSite()}`,
- it:d=>`Vado al Bossa Nova Café!\n${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre}\n${dfull(d.ev.date)}, dalle ${d.slot}\nPlace de la Gare 3, 1800 Vevey\n\nVieni anche tu? Prenota qui: ${lienSite()}`
+ fr:d=>`Je vais au Bossa Nova Café !\n${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre}\n${quandEv(d.ev,null,d.date)}, dès ${d.slot}\nPlace de la Gare 3, 1800 Vevey\n\nTu viens ? Réserve ta table ici : ${lienSite()}`,
+ en:d=>`I'm going to Bossa Nova Café!\n${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre}\n${quandEv(d.ev,null,d.date)}, from ${d.slot}\nPlace de la Gare 3, 1800 Vevey\n\nJoin me — book your table here: ${lienSite()}`,
+ de:d=>`Ich gehe ins Bossa Nova Café!\n${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre}\n${quandEv(d.ev,null,d.date)}, ab ${d.slot}\nPlace de la Gare 3, 1800 Vevey\n\nKommst du mit? Hier reservieren: ${lienSite()}`,
+ pt:d=>`Vou ao Bossa Nova Café!\n${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre}\n${quandEv(d.ev,null,d.date)}, a partir das ${d.slot}\nPlace de la Gare 3, 1800 Vevey\n\nVem também! Reserve aqui: ${lienSite()}`,
+ es:d=>`¡Voy al Bossa Nova Café!\n${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre}\n${quandEv(d.ev,null,d.date)}, desde las ${d.slot}\nPlace de la Gare 3, 1800 Vevey\n\n¿Te apuntas? Reserva aquí: ${lienSite()}`,
+ it:d=>`Vado al Bossa Nova Café!\n${TYPES[d.ev.type||'music'].nom} — ${d.ev.titre}\n${quandEv(d.ev,null,d.date)}, dalle ${d.slot}\nPlace de la Gare 3, 1800 Vevey\n\nVieni anche tu? Prenota qui: ${lienSite()}`
 };
 
 /* messages WhatsApp, dans la langue choisie par le client */
 const WA={
- fr:(r,ev)=>`Bonjour ${r.nom},\n\nVotre réservation au Bossa Nova Café est confirmée :\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'fr')}, arrivée à ${r.slot}\n${r.pax} personne${r.pax>1?'s':''} · code ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nÀ très bientôt !`,
- en:(r,ev)=>`Hello ${r.nom},\n\nYour booking at Bossa Nova Café is confirmed:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'en')}, arriving at ${r.slot}\n${r.pax} guest${r.pax>1?'s':''} · code ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nSee you soon!`,
- de:(r,ev)=>`Guten Tag ${r.nom},\n\nIhre Reservierung im Bossa Nova Café ist bestätigt:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'de')}, Ankunft um ${r.slot}\n${r.pax} Person${r.pax>1?'en':''} · Code ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nBis bald!`,
- pt:(r,ev)=>`Olá ${r.nom},\n\nSua reserva no Bossa Nova Café está confirmada:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'pt')}, chegada às ${r.slot}\n${r.pax} pessoa${r.pax>1?'s':''} · código ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nAté breve!`,
- es:(r,ev)=>`Hola ${r.nom},\n\nSu reserva en el Bossa Nova Café está confirmada:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'es')}, llegada a las ${r.slot}\n${r.pax} persona${r.pax>1?'s':''} · código ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\n¡Hasta pronto!`,
- it:(r,ev)=>`Buongiorno ${r.nom},\n\nLa vostra prenotazione al Bossa Nova Café è confermata:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'it')}, arrivo alle ${r.slot}\n${r.pax} person${r.pax>1?'e':'a'} · codice ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nA presto!`
+ fr:(r,ev)=>`Bonjour ${r.nom},\n\nVotre réservation au Bossa Nova Café est confirmée :\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,'fr',r.date)}, arrivée à ${r.slot}\n${r.pax} personne${r.pax>1?'s':''} · code ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nÀ très bientôt !`,
+ en:(r,ev)=>`Hello ${r.nom},\n\nYour booking at Bossa Nova Café is confirmed:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,'en',r.date)}, arriving at ${r.slot}\n${r.pax} guest${r.pax>1?'s':''} · code ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nSee you soon!`,
+ de:(r,ev)=>`Guten Tag ${r.nom},\n\nIhre Reservierung im Bossa Nova Café ist bestätigt:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,'de',r.date)}, Ankunft um ${r.slot}\n${r.pax} Person${r.pax>1?'en':''} · Code ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nBis bald!`,
+ pt:(r,ev)=>`Olá ${r.nom},\n\nSua reserva no Bossa Nova Café está confirmada:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,'pt',r.date)}, chegada às ${r.slot}\n${r.pax} pessoa${r.pax>1?'s':''} · código ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nAté breve!`,
+ es:(r,ev)=>`Hola ${r.nom},\n\nSu reserva en el Bossa Nova Café está confirmada:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,'es',r.date)}, llegada a las ${r.slot}\n${r.pax} persona${r.pax>1?'s':''} · código ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\n¡Hasta pronto!`,
+ it:(r,ev)=>`Buongiorno ${r.nom},\n\nLa vostra prenotazione al Bossa Nova Café è confermata:\n${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,'it',r.date)}, arrivo alle ${r.slot}\n${r.pax} person${r.pax>1?'e':'a'} · codice ${r.code}\n\nPlace de la Gare 3, 1800 Vevey.\nA presto!`
 };
 
 /* indicatifs — Suisse et voisins en tête, puis le reste par ordre alphabétique */
@@ -1193,7 +1202,7 @@ function pageEv(id){
   const base=lienSite(), a=s=>String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
   const nom=TYPES[ev.type||'music'].nom;
   const titre=`${nom} — ${ev.titre} · Bossa Nova Café`;
-  const desc=(ev.desc||`${dfull(ev.date,'fr')}, ${ev.debut} – ${ev.fin}. Place de la Gare 3, 1800 Vevey. Réservation en ligne.`).replace(/\s+/g,' ').slice(0,300);
+  const desc=(ev.desc||`${quandEv(ev,'fr')}, ${ev.debut} – ${ev.fin}. Place de la Gare 3, 1800 Vevey. Réservation en ligne.`).replace(/\s+/g,' ').slice(0,300);
   const img=imgUrl(ev.img);
   const fichier=slug(ev.titre)+'.html';
   const url=base+fichier;
@@ -1229,7 +1238,7 @@ function pageEv(id){
 }
 function lienEv(id){
   const ev=events.find(e=>e.id===id); const u=lienSite()+'?e='+id;
-  const msg=`${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${dfull(ev.date,'fr')}, ${ev.debut} – ${ev.fin}\nBossa Nova Café, Place de la Gare 3, 1800 Vevey\n\nRéservations : ${u}`;
+  const msg=`${TYPES[ev.type||'music'].nom} — ${ev.titre}\n${quandEv(ev,'fr')}, ${ev.debut} – ${ev.fin}\nBossa Nova Café, Place de la Gare 3, 1800 Vevey\n\nRéservations : ${u}`;
   info("Lien direct vers cet événement, et le texte d'annonce prêt à coller.",msg,
     [{label:'Copier le lien',value:u},{label:"Copier l'annonce",value:msg}], u);
 }
